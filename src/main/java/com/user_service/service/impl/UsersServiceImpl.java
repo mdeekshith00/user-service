@@ -28,11 +28,11 @@ import com.user_service.exception.DetailsNotFoundException;
 import com.user_service.exception.UserDetailsNotFoundException;
 import com.user_service.mapper.RoleMapper;
 import com.user_service.mapper.UserMapper;
+import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
 import com.user_service.service.UsersService;
 import com.user_service.util.CommonConstants;
-import com.user_service.util.CommonUtils;
 import com.user_service.vo.UsersVo;
 import com.user_service.vo.loginUservo;
 
@@ -54,6 +54,7 @@ public class UsersServiceImpl implements UsersService {
 	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
 	private final RefreshTokenServiceImpl refreshTokenServiceImpl;
+//	private final RefreshTokenrepositary refreshTokenrepositary;
 	
 	private  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 	
@@ -128,11 +129,12 @@ public class UsersServiceImpl implements UsersService {
 		Authentication authentication  = 
 				authManager.authenticate(new UsernamePasswordAuthenticationToken(loginUservo.getUsername(), loginUservo.getPassword()));
 		RefreshToken token =  refreshTokenServiceImpl.createrefreshToken(loginUservo.getUsername());
-
-		  if(authentication.isAuthenticated()) 
-                     jwtServcie.generateToken(user) ;
-                     return  JWTResponse.builder()
-                                  .accesToken(jwtServcie.generateToken(user))
+          String jwt = null;
+		  if(authentication.isAuthenticated())
+              jwt =   jwtServcie.generateToken(user);
+		  
+           return  JWTResponse.builder()
+                                  .accesToken(jwt)
                                   .token(token.getToken())
                                   .build();
 	}
@@ -252,24 +254,24 @@ public class UsersServiceImpl implements UsersService {
 	}
 	@Override
 	public JWTResponse refreshToken(RefreshTokenRequest request) {
-		JWTResponse jwtResponse = refreshTokenServiceImpl.findByToken(request.getRefreshToken())
-		                                           .map(refreshTokenServiceImpl::verifyExpiration)
-		                                           .map(RefreshToken::getUser)
-		                                           .map(user -> {
-		                                        	   refreshTokenServiceImpl.deleteToken(request.getRefreshToken());
-		                                        	   String newAccesToken = jwtServcie.generateToken(user);
-		                                        	   log.info("New token issued for user: {}", user.getUsername());
-													String newRefreshToken = refreshTokenServiceImpl.createrefreshToken(user.getUsername()).getToken();
-		                                              return JWTResponse.builder()
-		                                            		           .accesToken(newAccesToken)
-		                                            		           .token(newRefreshToken)
-		                                            		           .build();
-		                                           } )
-                      .orElseThrow(() -> new UserDetailsNotFoundException(CommonConstants.REFRESH_TOKEN_NOT_FOUND));
+		JWTResponse jwtResponse = null ;
+		Optional<RefreshToken> token = refreshTokenServiceImpl.findByToken(request.getRefreshToken());
+		 RefreshToken refreshToken;
+		if(token.isPresent()) {
+		  boolean date = token.get().getExpiryDate().isBefore(Instant.now());
+			if(date) {
+				refreshToken = refreshTokenServiceImpl.createrefreshToken(token.get().getUser().getUsername());
+				jwtResponse = JWTResponse.builder()
+						.accesToken(jwtServcie.generateToken(token.get().getUser()))
+						.token(refreshToken.getToken())
+						.build();
+			} 
+		} else {
+			refreshToken = refreshTokenServiceImpl.createrefreshToken(token.get().getUser().getUsername());
+		}
+		
 		
 		return jwtResponse;
 	}
-
-	
 
 }

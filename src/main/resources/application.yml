@@ -21,11 +21,11 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  flyway:
+#  flyway:
     enabled: true
     baseline-on-migrate: true   # ✅ use this if your schema already exists (not empty DB)
     locations: classpath:db/migration
     validate-on-migrate: true   # ✅ to ensure consistency between schema and migrations
 
-  profiles:
-    active: prod
+#  profiles:
+#    active: prod
