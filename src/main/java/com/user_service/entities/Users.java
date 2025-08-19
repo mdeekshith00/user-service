@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -125,9 +127,14 @@ public class Users  implements UserDetails , Serializable {
 	@JsonManagedReference
     private RefreshToken refreshToken;
 	
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+	private List<AuditLog> auditLogs = new ArrayList<>();
+	
 	@OneToMany(mappedBy = "user")
 	@JsonManagedReference
 	private List<UserHistory> userHistory;
+	
 	
 	
 	public UserHistory  addHistory(UserHistory userHistory) {
