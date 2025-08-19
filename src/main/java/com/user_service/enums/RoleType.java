@@ -4,6 +4,7 @@ public enum RoleType {
 	USER,
 	ADMIN,
 	DONOR,
-	HOSPITAL;
+	HOSPITAL,
+	VOLUNTEER;
 
 }
