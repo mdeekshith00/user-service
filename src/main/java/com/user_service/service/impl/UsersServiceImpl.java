@@ -1,8 +1,10 @@
 package com.user_service.service.impl;
 
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -31,6 +33,7 @@ import com.user_service.mapper.UserMapper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
+import com.user_service.service.RefreshTokenService;
 import com.user_service.service.UsersService;
 import com.user_service.util.CommonConstants;
 import com.user_service.vo.UsersVo;
@@ -44,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class UsersServiceImpl implements UsersService {
+public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	
 	private final UserRepositary userRepositary;
 	private final RoleRepositary roleRepositary;
@@ -53,8 +56,7 @@ public class UsersServiceImpl implements UsersService {
 	private final AuthenticationManager authManager;
 	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
-	private final RefreshTokenServiceImpl refreshTokenServiceImpl;
-//	private final RefreshTokenrepositary refreshTokenrepositary;
+	private final RefreshTokenrepositary refreshTokenRepositary;
 	
 	private  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 	
@@ -64,7 +66,7 @@ public class UsersServiceImpl implements UsersService {
 		// TODO Auto-generated method stub
 	   Users user = new Users();
 	   log.info("user register...." );
-//      Role role = new Role();
+
 	   
 	  Set<Role> roles =  userVo.getRoles().stream().map(r -> {
 			if(r.getRole() == null) {
@@ -97,11 +99,9 @@ public class UsersServiceImpl implements UsersService {
 				.bio(userVo.getBio())
 				.roles(roles)
 				.build();
-		 
-//          userMapper.toEntity(userVo); 
-		user = userRepositary.save(user);
 
-//		UserDto userDto = userMapper.toDto(user);
+		user = userRepositary.save(user);
+		
 		UserDto userDto = uModelMapper.map(user, UserDto.class);
 		userDto.setStatus(CommonConstants.SUCESS);
 		return userDto;
@@ -110,7 +110,7 @@ public class UsersServiceImpl implements UsersService {
 	public JWTResponse  login(loginUservo loginUservo) {
 		Users user = userRepositary.findByUsername(loginUservo.getUsername());
 		if(user == null) {
-			throw new UserDetailsNotFoundException("user details not found Exception..");
+			throw new UserDetailsNotFoundException("user details not found .." + loginUservo.getUsername());
 		}
 		user.setIsActive(Boolean.TRUE);
 		user.setLastLogin(Timestamp.from(Instant.now()));
@@ -128,7 +128,7 @@ public class UsersServiceImpl implements UsersService {
 		
 		Authentication authentication  = 
 				authManager.authenticate(new UsernamePasswordAuthenticationToken(loginUservo.getUsername(), loginUservo.getPassword()));
-		RefreshToken token =  refreshTokenServiceImpl.createrefreshToken(loginUservo.getUsername());
+		RefreshToken token =  createrefreshToken(loginUservo.getUsername());
           String jwt = null;
 		  if(authentication.isAuthenticated())
               jwt =   jwtServcie.generateToken(user);
@@ -254,24 +254,69 @@ public class UsersServiceImpl implements UsersService {
 	}
 	@Override
 	public JWTResponse refreshToken(RefreshTokenRequest request) {
-		JWTResponse jwtResponse = null ;
-		Optional<RefreshToken> token = refreshTokenServiceImpl.findByToken(request.getRefreshToken());
-		 RefreshToken refreshToken;
-		if(token.isPresent()) {
-		  boolean date = token.get().getExpiryDate().isBefore(Instant.now());
-			if(date) {
-				refreshToken = refreshTokenServiceImpl.createrefreshToken(token.get().getUser().getUsername());
-				jwtResponse = JWTResponse.builder()
-						.accesToken(jwtServcie.generateToken(token.get().getUser()))
-						.token(refreshToken.getToken())
-						.build();
-			} 
+	    // Step 1: Find token
+	    RefreshToken refreshToken = refreshTokenRepositary.findByToken(request.getRefreshToken())
+	            .orElseThrow(() -> new UserDetailsNotFoundException("Refresh token not found: " + request.getRefreshToken()));
+
+	    // Step 2: Check expiry
+	    if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
+	    	refreshToken = createOrUpdateRefreshToken(refreshToken.getUser());
+	        // OR regenerate: refreshToken = createrefreshToken(refreshToken.getUser().getUsername());
+	    }
+
+	    // Step 3: Generate new Access Token
+	    String newAccessToken = jwtServcie.generateToken(refreshToken.getUser());
+
+	    // Step 4: Return Response
+	    return JWTResponse.builder()
+	            .accesToken(newAccessToken)
+	            .token(refreshToken.getToken()) // keep same refresh token if still valid
+	            .build();
+	}
+
+	public RefreshToken createrefreshToken(String username) {
+		RefreshToken refreshToken = RefreshToken.builder()
+				         .user(userRepositary.findByUsername(username))
+		                 .token((UUID.randomUUID() + username).toString())
+		                 .expiryDate(Instant.now().plusSeconds(3600))
+		                 .build();
+		
+		return refreshTokenRepositary.save(refreshToken);
+		
+	}
+
+	public Optional<RefreshToken> findByToken(String token) {
+		 log.info("Searching for token: {}", token);
+		 return Optional.ofNullable(refreshTokenRepositary.findByToken(token)
+				 .orElseThrow(() -> new UserDetailsNotFoundException("token not found " + token)));
+	}
+	public void deleteToken(String token) {
+		  refreshTokenRepositary.findByToken(token);
+	}
+	public RefreshToken verifyExpiration(RefreshToken token) {
+		if(token.getExpiryDate().isBefore(Instant.now())) {
+			refreshTokenRepositary.delete(token);
+			throw new RuntimeException(token.getToken()  + " Refresh Token Has been expired , Plase sign again :");
+		
+		}	
+		return token;
+	}
+
+	private RefreshToken createOrUpdateRefreshToken(Users user) {
+		// TODO Auto-generated method stub
+		Optional<RefreshToken> existingToken = refreshTokenRepositary.findByUser(user);
+		RefreshToken refreshToken ;
+		if(existingToken.isPresent()) {
+			refreshToken = existingToken.get();
+			refreshToken.setToken(UUID.randomUUID().toString());
+		    refreshToken.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
 		} else {
-			refreshToken = refreshTokenServiceImpl.createrefreshToken(token.get().getUser().getUsername());
+			refreshToken = new RefreshToken();
+			refreshToken.setUser(user);
+			refreshToken.setToken(UUID.randomUUID().toString());
+			refreshToken.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
 		}
-		
-		
-		return jwtResponse;
+		return refreshTokenRepositary.save(refreshToken);
 	}
 
 }
