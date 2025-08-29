@@ -89,14 +89,4 @@ public class UsersController {
 	public  ResponseEntity<List<?>> getAllUsers() {
 	   return  ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
 	}
-//	@GetMapping
-//	public ResponseEntity<Page<SearchDto>> getByBloodGroupByUsers(
-//	        @RequestParam(defaultValue = "0") int page,
-//	        @RequestParam(defaultValue = "10") int size,
-//	        @RequestParam String bloodGroup) {
-//
-//	    return ResponseEntity.ok(userService.getPaginatedUsersandBloodGroup(page, size, bloodGroup));
-//	} 
-
-
 }

@@ -24,7 +24,7 @@ public class RefreshTokenServiceImpl  implements RefreshTokenService {
 	private final UserRepositary rUserRepositary;
 	
 	public RefreshToken createrefreshToken(String username) {
-		RefreshToken refreshToken = 	RefreshToken.builder()
+		RefreshToken refreshToken = RefreshToken.builder()
 				         .user(rUserRepositary.findByUsername(username))
 		                 .token((UUID.randomUUID() + username).toString())
 		                 .expiryDate(Instant.now().plusSeconds(3600))
@@ -50,4 +50,6 @@ public class RefreshTokenServiceImpl  implements RefreshTokenService {
 		}	
 		return token;
 	}
+	
+	
 }
