@@ -2,9 +2,7 @@ package com.user_service.service.impl;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,10 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.common.constants.CommonConstants;
 import com.user_service.entities.Users;
-import com.user_service.util.CommonConstants;
 import com.user_service.util.SessionUtil;
-import com.user_service.vo.JWTRoleDetails;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

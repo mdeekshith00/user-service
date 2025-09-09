@@ -18,6 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.common.constants.CommonConstants;
+import com.common.enums.StatusType;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.MinUserDto;
 import com.user_service.dto.RefreshTokenRequest;
@@ -25,17 +27,14 @@ import com.user_service.dto.UserDto;
 import com.user_service.entities.RefreshToken;
 import com.user_service.entities.Role;
 import com.user_service.entities.Users;
-import com.user_service.enums.StatusType;
 import com.user_service.exception.DetailsNotFoundException;
 import com.user_service.exception.UserDetailsNotFoundException;
 import com.user_service.mapper.RoleMapper;
-import com.user_service.mapper.UserMapper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
 import com.user_service.service.RefreshTokenService;
 import com.user_service.service.UsersService;
-import com.user_service.util.CommonConstants;
 import com.user_service.vo.UsersVo;
 import com.user_service.vo.loginUservo;
 
@@ -54,7 +53,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	private final JWTService jwtServcie;
 	private final ModelMapper uModelMapper;
 	private final AuthenticationManager authManager;
-	private final UserMapper userMapper;
+//	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
 	private final RefreshTokenrepositary refreshTokenRepositary;
 	
@@ -155,7 +154,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	  }
 	  uDto.setStatus(CommonConstants.SUCESS);
 	  uDto.setMessage("Succesfully login in to user");
-	  uDto = userMapper.toDto(user);
+//	  uDto = userMapper.toDto(user);
 		return uDto;
 	}
 

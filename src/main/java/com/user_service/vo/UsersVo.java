@@ -6,13 +6,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import com.common.enums.AddressType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.entities.Address;
 import com.user_service.entities.FullName;
-import com.user_service.enums.AddressType;
-import com.user_service.enums.LogInType;
-import com.user_service.enums.StatusType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -86,9 +84,9 @@ public class UsersVo {
 	
 	private String bio;
 	
-	private StatusType activeStatus;
+	private UsersVo activeStatus;
 	@Enumerated
-	private LogInType logInProvider;
+	private com.common.enums.LogInType logInProvider;
 	
 	private Boolean wantToDonate; 
 	
