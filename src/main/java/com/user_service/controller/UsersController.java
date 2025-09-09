@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.user_service.dto.BaseDto;
+import com.common.dto.BaseDTO;
 import com.user_service.dto.JWTResponse;
-import com.user_service.dto.MinUserDto;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
 import com.user_service.service.UsersService;
@@ -39,7 +38,7 @@ public class UsersController {
 //	private final Executor virtualThreadExecutor;
 	
 	@PostMapping("/sign-up")
-	public ResponseEntity<BaseDto> register(@RequestBody UsersVo userVo) {
+	public ResponseEntity<BaseDTO> register(@RequestBody UsersVo userVo) {
 		UserDto user = 	userService.register(userVo);
 		return  ResponseEntity.status(HttpStatus.CREATED).body(user);
 	}
@@ -66,7 +65,7 @@ public class UsersController {
 	
 	@Operation(summary = "Get user by ID", description = "Returns a single user by their ID")
 	 @GetMapping("/{userId}")
-	public ResponseEntity<BaseDto> getUsersById(@PathVariable Integer userId) {
+	public ResponseEntity<BaseDTO> getUsersById(@PathVariable Integer userId) {
  
 //		return CompletableFuture.supplyAsync(()-> {
 //			UserDto user = userService.getUsersById(userId);
@@ -76,7 +75,7 @@ public class UsersController {
 	}
 	 
 	@PutMapping("/update/{userId}")
-	public ResponseEntity<BaseDto> updateUsers(@PathVariable Integer userId,@RequestBody UsersVo userVo) {
+	public ResponseEntity<BaseDTO> updateUsers(@PathVariable Integer userId,@RequestBody UsersVo userVo) {
 		return  ResponseEntity.status(HttpStatus.OK).body(userService.updateUsers(userId, userVo));
 	}
 	

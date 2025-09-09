@@ -108,7 +108,7 @@ public class Users  implements UserDetails , Serializable {
 	}
 
 	
-	@ManyToMany(fetch = FetchType.EAGER)
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "users_role", 
 			joinColumns  = @JoinColumn(name = "user_id") ,
 	        inverseJoinColumns = @JoinColumn(name = "role_Id")

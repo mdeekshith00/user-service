@@ -23,7 +23,7 @@ public interface UsersService {
 	List<UserDto> getAllUsers();
 	String forgotPassword(String username);
 	String resetPassword(String username , String resetPassword , String password);
-	JWTResponse refreshToken(RefreshTokenRequest request);
+	JWTResponse refreshToken(RefreshTokenRequest refreshToken);
 		
 //   Page<SearchDto> getPaginatedUsersandBloodGroup(int page, int size, String bloodGroup);
 

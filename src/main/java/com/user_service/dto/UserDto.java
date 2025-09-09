@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.common.dto.BaseDTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.vo.AddressVo;
 import com.user_service.vo.FullNameVo;
@@ -20,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserDto extends BaseDto {
+public class UserDto extends BaseDTO {
 	
     private FullNameVo fullname;
 	

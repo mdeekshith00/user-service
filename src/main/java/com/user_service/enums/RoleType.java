@@ -6,5 +6,4 @@ public enum RoleType {
 	DONOR,
 	HOSPITAL,
 	VOLUNTEER;
-
 }
