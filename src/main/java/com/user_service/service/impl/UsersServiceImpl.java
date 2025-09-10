@@ -138,6 +138,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	}
 
 	@Override
+	@Transactional
 	public UserDto getUsersById(Integer userId) {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
