@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import com.common.constants.CommonConstants;
 import com.common.enums.StatusType;
+import com.common.exception.BloodBankBusinessException;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.MinUserDto;
 import com.user_service.dto.RefreshTokenRequest;
@@ -27,8 +28,6 @@ import com.user_service.dto.UserDto;
 import com.user_service.entities.RefreshToken;
 import com.user_service.entities.Role;
 import com.user_service.entities.Users;
-import com.user_service.exception.DetailsNotFoundException;
-import com.user_service.exception.UserDetailsNotFoundException;
 import com.user_service.mapper.RoleMapper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
@@ -53,7 +52,6 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	private final JWTService jwtServcie;
 	private final ModelMapper uModelMapper;
 	private final AuthenticationManager authManager;
-//	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
 	private final RefreshTokenrepositary refreshTokenRepositary;
 	
@@ -69,7 +67,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	   
 	  Set<Role> roles =  userVo.getRoles().stream().map(r -> {
 			if(r.getRole() == null) {
-				throw new DetailsNotFoundException("Role name not Found : ");
+				throw new BloodBankBusinessException(null);
 			}
 				Role role = new Role();
 				role = Role.builder()
@@ -109,7 +107,8 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	public JWTResponse  login(loginUservo loginUservo) {
 		Users user = userRepositary.findByUsername(loginUservo.getUsername());
 		if(user == null) {
-			throw new UserDetailsNotFoundException("user details not found .." + loginUservo.getUsername());
+			throw new BloodBankBusinessException(null);
+//			throw new UserDetailsNotFoundException("user details not found .." + loginUservo.getUsername());
 		}
 		user.setIsActive(Boolean.TRUE);
 		user.setLastLogin(Timestamp.from(Instant.now()));
@@ -144,12 +143,12 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 //		CommonUtils.verifyUserId(String.valueOf(userId));
 		log.debug("user id verified {}:" + userId);
 	  Users user = userRepositary.findById(userId)
-			  .orElseThrow(() ->  new UserDetailsNotFoundException(CommonConstants.USER_DATA_NOTFOUND_WITH_GIVEN_ID + userId));
+			  .orElseThrow(() ->  new BloodBankBusinessException(null));
 	  log.debug("retriveing user from db {} : " + userId);
 	  UserDto uDto = new UserDto();
 	  
 	  if(!user.getIsActive()) {   
-		  throw new UserDetailsNotFoundException(CommonConstants.USER_NOT_IN_ACTIVE + CommonConstants.UPDATE_THE_STATUS);
+		  throw new BloodBankBusinessException(null);
 		  
 	  }
 	  uDto.setStatus(CommonConstants.SUCESS);
@@ -163,7 +162,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
 		  Users user = userRepositary.findById(userId)
-				  .orElseThrow(() ->  new UserDetailsNotFoundException(CommonConstants.USER_DATA_NOTFOUND_WITH_GIVEN_ID+ userId) );
+				  .orElseThrow(() ->  new BloodBankBusinessException(null));
 		  if(Boolean.TRUE.equals(user.getIsActive())) {
 //		  user.setAddressType(userVo.getAddressType().toString());
 		  user.setUpdatedAt(LocalDateTime.now());
@@ -173,7 +172,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		  user = userRepositary.save(user);
 		  }
 		  else {
-			  throw new UserDetailsNotFoundException(CommonConstants.USER_NOT_IN_ACTIVE + CommonConstants.UPDATE_THE_STATUS);
+			  throw new BloodBankBusinessException(null);
 		  } 
 		  MinUserDto minUserDto =   uModelMapper.map(user, MinUserDto.class);
 		return minUserDto;
@@ -185,7 +184,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
 	  Users user = 	userRepositary.findById(userId)
-		.orElseThrow(() ->  new UserDetailsNotFoundException(CommonConstants.USER_DATA_NOTFOUND_WITH_GIVEN_ID+ userId) );
+		.orElseThrow(() ->  new BloodBankBusinessException(null));
 	  
 	    if(Boolean.TRUE.equals(user.getIsActive()) && Boolean.TRUE.equals(user.getIsPhoneNumberVerified())) 
 	    {
@@ -195,7 +194,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		
 	    }
 	    else {
-	    	throw new DetailsNotFoundException(CommonConstants.USER_NOT_THERE_TO_DELETE + user.getUsername());
+	    	throw new BloodBankBusinessException(null);
 	    }
 		log.info("delted user .." + userId);
 	
@@ -229,7 +228,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		user.setResetToken(resetPassword);
 		userRepositary.save(user);
 	} else {
-		throw new DetailsNotFoundException("User Details Not Found on this Username :" + username);
+		throw new BloodBankBusinessException(null);
 	}
 		return "reset your password with : " + resetPassword;
 	}
@@ -242,12 +241,14 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 			if(user.getResetToken().equalsIgnoreCase(resetPassword)) {
 		                     	user.setResetToken(null);
 			} else {
-				throw new DetailsNotFoundException("Bad credetials Entered: ");
+				throw new BloodBankBusinessException(null);
+//				throw new DetailsNotFoundException("Bad credetials Entered: ");
 			}
 			user.setPassword(encoder.encode(password));
 			userRepositary.save(user);
 		} else {
-			throw new DetailsNotFoundException(CommonConstants.USER_DETAILS_NOTFOUND_ID + username);
+			throw new BloodBankBusinessException(null);
+//			throw new DetailsNotFoundException(CommonConstants.USER_DETAILS_NOTFOUND_ID + username);
 		}
 		return "Password Updated for User " + username;
 	}
@@ -255,7 +256,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	public JWTResponse refreshToken(RefreshTokenRequest request) {
 	    // Step 1: Find token
 	    RefreshToken refreshToken = refreshTokenRepositary.findByToken(request.getRefreshToken())
-	            .orElseThrow(() -> new UserDetailsNotFoundException("Refresh token not found: " + request.getRefreshToken()));
+	            .orElseThrow(() -> new BloodBankBusinessException(null));
 
 	    // Step 2: Check expiry
 	    if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
@@ -286,8 +287,8 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 
 	public Optional<RefreshToken> findByToken(String token) {
 		 log.info("Searching for token: {}", token);
-		 return Optional.ofNullable(refreshTokenRepositary.findByToken(token)
-				 .orElseThrow(() -> new UserDetailsNotFoundException("token not found " + token)));
+		 return Optional.ofNullable(refreshTokenRepositary.findByToken(token))
+				 .orElseThrow(() -> new BloodBankBusinessException(null));
 	}
 	public void deleteToken(String token) {
 		  refreshTokenRepositary.findByToken(token);
