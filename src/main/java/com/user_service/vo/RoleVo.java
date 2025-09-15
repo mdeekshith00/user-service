@@ -1,6 +1,6 @@
 package com.user_service.vo;
 
-import com.user_service.enums.RoleType;
+import com.common.enums.RoleType;
 
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
