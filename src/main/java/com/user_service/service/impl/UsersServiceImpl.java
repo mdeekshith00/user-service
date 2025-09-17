@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.common.constants.CommonConstants;
 import com.common.constants.ErrorConstants;
+import com.common.enums.RoleType;
 import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
 import com.user_service.dto.JWTResponse;
@@ -29,6 +30,7 @@ import com.user_service.dto.UserDto;
 import com.user_service.entities.RefreshToken;
 import com.user_service.entities.Role;
 import com.user_service.entities.Users;
+import com.user_service.mapper.MapperHelper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
@@ -49,6 +51,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	
 	private final UserRepositary userRepositary;
 	private final RoleRepositary roleRepositary;
+//	private final MapperHelper mapperHelper;
 	private final JWTService jwtServcie;
 	private final ModelMapper uModelMapper;
 	private final AuthenticationManager authManager;
@@ -177,11 +180,30 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		  
 		  user.setUpdatedAt(LocalDateTime.now());
 		  user = userRepositary.save(user);
+		  UserDto userReponse  = new UserDto();
+		  Role role = new Role();
+		  if(Boolean.TRUE.equals(user.getWantToDonate())) {
+			 role = roleRepositary.findByUsers(user).orElse(null);
+		  }
+		  role.setRole(RoleType.DONOR.name());
+		 role =  roleRepositary.save(role);
+		return  MapperHelper.userToDto(user);
 		  
-		  UserDto minUserDto =   uModelMapper.map(user, UserDto.class);
-		return minUserDto;
+		 
+
 	}
 
+//	private UserDto userToDto(Users user) {
+//		// TODO Auto-generated method stub
+//	return   UserDto.builder()
+//				 .eMail(user.getEMail())
+//				 .wantToDonate(user.getWantToDonate())
+//				 .gender(user.getGender())
+//				 .dateOfBirth(user.getDateOfBirth())
+//				 .addressType(user.getAddressType())
+//				 .build();
+//		
+//	}
 	@Override
 //	@CacheEvict(value = "users", key = "#userId")
 	public String deleteUser(Integer userId) {
@@ -258,17 +280,13 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	}
 	@Override
 	public JWTResponse refreshToken(RefreshTokenRequest request) {
-	    // Step 1: Find token
 	    RefreshToken refreshToken = refreshTokenRepositary.findByToken(request.getRefreshToken())
 	            .orElseThrow(() -> new BloodBankBusinessException(null));
 
-	    // Step 2: Check expiry
 	    if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
 	    	refreshToken = createOrUpdateRefreshToken(refreshToken.getUser());
-	        // OR regenerate: refreshToken = createrefreshToken(refreshToken.getUser().getUsername());
 	    }
 
-	    // Step 3: Generate new Access Token
 	    String newAccessToken = jwtServcie.generateToken(refreshToken.getUser());
 
 	    // Step 4: Return Response

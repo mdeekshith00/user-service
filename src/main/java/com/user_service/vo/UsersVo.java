@@ -3,7 +3,6 @@ package com.user_service.vo;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 import com.common.enums.AddressType;

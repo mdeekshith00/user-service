@@ -1,6 +1,7 @@
 package com.user_service.vo;
 
 import com.common.enums.RoleType;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RoleVo {
 	
      @Enumerated

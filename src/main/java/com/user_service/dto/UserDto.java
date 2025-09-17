@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.common.dto.BaseDTO;
+import com.common.enums.AddressType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.vo.AddressVo;
 import com.user_service.vo.FullNameVo;
@@ -41,6 +42,8 @@ public class UserDto extends BaseDTO {
 	private AddressVo address ;
 
 	private Boolean isAvailableToDonate;
+
+	private String addressType;
 	
 	private LocalDate dateOfBirth;
 	
@@ -53,6 +56,8 @@ public class UserDto extends BaseDTO {
 	private LocalDateTime lastDonationDate;
 		
 	private String bio;
+	
+	private Boolean wantToDonate; 
 	
 	private Set<RoleVo> roles;
 
