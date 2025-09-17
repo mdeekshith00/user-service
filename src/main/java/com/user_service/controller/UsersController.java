@@ -24,6 +24,7 @@ import com.user_service.vo.loginUservo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,9 +64,9 @@ public class UsersController {
 		return ResponseEntity.status(HttpStatus.OK).body(userService.resetPassword(username, resetPassword, password));
 	}
 	
-	@Operation(summary = "Get user by ID", description = "Returns a single user by their ID")
+//	@Operation(summary = "Get user by ID", description = "Returns a single user by their ID")
 	 @GetMapping("/{userId}")
-	public ResponseEntity<BaseDTO> getUsersById(@PathVariable Integer userId) {
+	public ResponseEntity<UserDto> getUsersById(@PathVariable Integer userId) {
  
 //		return CompletableFuture.supplyAsync(()-> {
 //			UserDto user = userService.getUsersById(userId);
@@ -75,7 +76,7 @@ public class UsersController {
 	}
 	 
 	@PutMapping("/update/{userId}")
-	public ResponseEntity<BaseDTO> updateUsers(@PathVariable Integer userId,@RequestBody UsersVo userVo) {
+	public ResponseEntity<BaseDTO> updateUsers(@PathVariable Integer userId, @Valid @RequestBody UsersVo userVo) {
 		return  ResponseEntity.status(HttpStatus.OK).body(userService.updateUsers(userId, userVo));
 	}
 	

@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,16 +20,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.common.constants.CommonConstants;
+import com.common.constants.ErrorConstants;
 import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
 import com.user_service.dto.JWTResponse;
-import com.user_service.dto.MinUserDto;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
 import com.user_service.entities.RefreshToken;
 import com.user_service.entities.Role;
 import com.user_service.entities.Users;
-import com.user_service.mapper.RoleMapper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
@@ -52,7 +52,6 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	private final JWTService jwtServcie;
 	private final ModelMapper uModelMapper;
 	private final AuthenticationManager authManager;
-	private final RoleMapper roleMapper;
 	private final RefreshTokenrepositary refreshTokenRepositary;
 	
 	private  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
@@ -67,7 +66,8 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	   
 	  Set<Role> roles =  userVo.getRoles().stream().map(r -> {
 			if(r.getRole() == null) {
-				throw new BloodBankBusinessException(null);
+				throw new BloodBankBusinessException(ErrorConstants.ROLE_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+						ErrorConstants.INVALID_DATA);          
 			}
 				Role role = new Role();
 				role = Role.builder()
@@ -101,6 +101,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		
 		UserDto userDto = uModelMapper.map(user, UserDto.class);
 		userDto.setStatus(CommonConstants.SUCESS);
+		userDto.setMessage(CommonConstants.USER_CREATED_SUCESSFULLY);
 		return userDto;
 	}
 	@Override
@@ -108,7 +109,6 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		Users user = userRepositary.findByUsername(loginUservo.getUsername());
 		if(user == null) {
 			throw new BloodBankBusinessException(null);
-//			throw new UserDetailsNotFoundException("user details not found .." + loginUservo.getUsername());
 		}
 		user.setIsActive(Boolean.TRUE);
 		user.setLastLogin(Timestamp.from(Instant.now()));
@@ -143,39 +143,42 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
 		log.debug("user id verified {}:" + userId);
-	  Users user = userRepositary.findById(userId)
-			  .orElseThrow(() ->  new BloodBankBusinessException(null));
-	  log.debug("retriveing user from db {} : " + userId);
+	  Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
+			  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+						ErrorConstants.INVALID_DATA));
+	  log.debug("retriveing user from db {} : " + user.getUserId());
 	  UserDto uDto = new UserDto();
-	  
-	  if(!user.getIsActive()) {   
-		  throw new BloodBankBusinessException(null);
-		  
-	  }
-	  uDto.setStatus(CommonConstants.SUCESS);
-	  uDto.setMessage("Succesfully login in to user");
-//	  uDto = userMapper.toDto(user);
+	  uDto = UserDto.builder()
+//			  .fullname(null)
+			  .username(user.getUsername())
+			  .phoneNumber(user.getPhoneNumber())
+			  .gender(user.getGender())
+//			  .address(user.getAddress())
+			  .dateOfBirth(user.getDateOfBirth())
+			  .build();
 		return uDto;
 	}
 
 	@Override
-	public MinUserDto updateUsers(Integer userId, UsersVo userVo) {
+	@Transactional
+	public UserDto updateUsers(Integer userId, UsersVo userVo) {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
-		  Users user = userRepositary.findById(userId)
-				  .orElseThrow(() ->  new BloodBankBusinessException(null));
-		  if(Boolean.TRUE.equals(user.getIsActive())) {
+		  Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
+				  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+							ErrorConstants.INVALID_DATA));
+		  
 //		  user.setAddressType(userVo.getAddressType().toString());
+		  Optional.of(userVo.getWantToDonate()).ifPresent(user::setWantToDonate);
+		  Optional.of(userVo.getEMail()).ifPresent(user::setEMail);
+		  Optional.of(userVo.getGender()).ifPresent(user::setGender);
+		  Optional.of(userVo.getDateOfBirth()).ifPresent(user::setDateOfBirth);
+		  Optional.of(userVo.getAddressType().toString()).ifPresent(user::setAddressType);
+		  
 		  user.setUpdatedAt(LocalDateTime.now());
-		  user.setEMail(userVo.getEMail());
-		  user.setGender(userVo.getGender().toString());
-		  user.setDateOfBirth(userVo.getDateOfBirth());
 		  user = userRepositary.save(user);
-		  }
-		  else {
-			  throw new BloodBankBusinessException(null);
-		  } 
-		  MinUserDto minUserDto =   uModelMapper.map(user, MinUserDto.class);
+		  
+		  UserDto minUserDto =   uModelMapper.map(user, UserDto.class);
 		return minUserDto;
 	}
 

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.common.enums.AddressType;
+import com.common.enums.LogInType;
+import com.common.enums.StatusType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.entities.Address;
@@ -84,14 +86,14 @@ public class UsersVo {
 	
 	private String bio;
 	
-	private UsersVo activeStatus;
+	private StatusType activeStatus;
 	@Enumerated
-	private com.common.enums.LogInType logInProvider;
+	private LogInType logInProvider;
 	
 	private Boolean wantToDonate; 
 	
-	private List<UserHistoryVo> userHistoryvo;
-	
+//	private List<UserHistoryVo> userHistoryvo;
+//	
 	private Set<RoleVo> roles;
 
 }

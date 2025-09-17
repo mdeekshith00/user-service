@@ -11,10 +11,12 @@ import com.user_service.vo.FullNameVo;
 import com.user_service.vo.RoleVo;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Builder
 @Setter
 @Getter
 @NoArgsConstructor

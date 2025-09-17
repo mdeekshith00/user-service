@@ -12,6 +12,7 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -112,6 +113,7 @@ public class Users  implements UserDetails , Serializable {
 			joinColumns  = @JoinColumn(name = "user_id") ,
 	        inverseJoinColumns = @JoinColumn(name = "role_Id")
 	)
+	@JsonIgnore
 	private Set<Role> roles;
 
 	@Override
