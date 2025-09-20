@@ -1,7 +1,7 @@
 package com.user_service.util;
 
+import com.common.exception.BloodBankBusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.user_service.exception.DetailsNotFoundException;
 import com.user_service.vo.SessionResponseVo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,8 @@ public class CommonUtils {
 		log.debug("verifyFields are: {}, {}, {} :", fieldName, firstfield, secondField);
 	          if((firstfield == null || secondField == null) || firstfield.equalsIgnoreCase(secondField)) {
 	        	  log.info("comparing firstField and secondfiled :" );
-	        	  throw new DetailsNotFoundException("session verifyId failed you are not an existing user :" + fieldName);
+	        	  throw new BloodBankBusinessException(null);
+//	        	  throw new DetailsNotFoundException("session verifyId failed you are not an existing user :" + fieldName);
 	          }
 	}
 	private static SessionResponseVo sessionResponse() {
@@ -25,7 +26,8 @@ public class CommonUtils {
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new DetailsNotFoundException("Session retrive response failed ....");
+			throw new BloodBankBusinessException(null);
+//			throw new DetailsNotFoundException("Session retrive response failed ....");
 		}
 	
 	}

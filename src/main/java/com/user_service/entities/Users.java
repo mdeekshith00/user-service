@@ -12,6 +12,7 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -62,36 +63,35 @@ public class Users  implements UserDetails , Serializable {
 	private String password;
 	@Column(nullable = false , unique = true)
 	private String phoneNumber;
-	
+	@Column
     private Boolean isPhoneNumberVerified;
     @Column(nullable = true)
 	private String gender;
-
+    @Column
 	private String eMail;
-	
 	@Column(name = "address_type" , nullable = false)
 	private String addressType;
 	@Embedded
 	private Address address ;
     @Past
 	private LocalDate dateOfBirth;
-    
+    @Column
 	private Boolean isActive;
-	
+	@Column
 	private String activeStatus; // e.g., "ACTIVE", "INACTIVE", "BANNED", "PENDING_APPROVAL"
-	
+	@Column
 	private Long loginCount;
-	
+	@Column
 	private Timestamp lastLogin;
-	
+	@Column
 	private LocalDateTime createdAt;
-	
+	@Column
 	private LocalDateTime updatedAt;
-	
+	@Column
 	private String resetToken;
-	
+	@Column
 	private String bio;
-	
+	@Column
 	private String logInProvider;
 	
 	@Column(name = "want_to_donate")
@@ -113,6 +113,7 @@ public class Users  implements UserDetails , Serializable {
 			joinColumns  = @JoinColumn(name = "user_id") ,
 	        inverseJoinColumns = @JoinColumn(name = "role_Id")
 	)
+	@JsonIgnore
 	private Set<Role> roles;
 
 	@Override

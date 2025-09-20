@@ -7,10 +7,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.common.exception.BloodBankBusinessException;
 import com.user_service.entities.Users;
-import com.user_service.exception.DetailsNotFoundException;
 import com.user_service.repositary.UserRepositary;
-
 import lombok.RequiredArgsConstructor;
 
 
@@ -26,7 +25,7 @@ public class UserPrinicipalServiceImpl  implements UserDetailsService {
 			// TODO Auto-generated method stub
 			Users user = uUserRepositary.findByUsername(username);
 			if(user == null)
-				throw  new  DetailsNotFoundException("UserName Not Found :" + user.getUsername());
+				throw  new  BloodBankBusinessException(null);
 	return new User(user.getUsername(),user.getPassword(), 
 			user.getRoles().stream()
             .map(role -> new SimpleGrantedAuthority(role.getRole()))

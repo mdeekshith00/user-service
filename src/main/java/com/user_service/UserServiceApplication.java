@@ -14,15 +14,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@EnableMethodSecurity
-@EnableScheduling
-@EnableCaching
 @EntityScan(basePackages = "com.user_service.entities")
 @EnableJpaRepositories(basePackages = "com.user_service.repositary")
-@ComponentScan(basePackages = "com.user_service")
 @EnableTransactionManagement
-@EnableAsync
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 public class  UserServiceApplication {
 
 	public static void main(String[] args) {

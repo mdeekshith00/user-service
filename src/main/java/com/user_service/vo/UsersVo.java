@@ -1,12 +1,12 @@
 package com.user_service.vo;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 import com.common.enums.AddressType;
+import com.common.enums.GenderType;
+import com.common.enums.LogInType;
+import com.common.enums.StatusType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.entities.Address;
@@ -44,13 +44,14 @@ public class UsersVo {
 	@NotNull
 	private String password;
 	
-	@Pattern( regexp = "^[6-9]\\d{9}$", message = "Invalid phone number")
+	@NotNull(message = "Phone number cannot be null")
+	@Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
 	private String phoneNumber;
 	
     private Boolean isPhoneNumberVerified;
-    
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private String gender;
+    private GenderType gender;
 
     
 	@Email(message = "Invalid email format")
@@ -62,7 +63,6 @@ public class UsersVo {
     @Enumerated(EnumType.STRING)
 	private AddressType addressType;
 	
-    @Size(min =2 , max = 10)
     @Embedded
 	private Address address ;
 	
@@ -73,25 +73,18 @@ public class UsersVo {
 	
 	private Long loginCount;
 	
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private Timestamp lastLogin;
-	
-	private LocalDateTime createdAt;
-	
-	private LocalDateTime updatedAt;
-	
 	private String resetToken;
 	
 	private String bio;
 	
-	private UsersVo activeStatus;
+	private StatusType activeStatus;
 	@Enumerated
-	private com.common.enums.LogInType logInProvider;
+	private LogInType logInProvider;
 	
 	private Boolean wantToDonate; 
 	
-	private List<UserHistoryVo> userHistoryvo;
-	
+//	private List<UserHistoryVo> userHistoryvo;
+//	
 	private Set<RoleVo> roles;
 
 }

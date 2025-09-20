@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.user_service.entities.Users;
-import com.user_service.exception.DetailsNotFoundException;
 import com.user_service.vo.SessionResponseVo;
 
 @Service

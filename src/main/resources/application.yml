@@ -29,3 +29,8 @@ spring:
 
 #  profiles:
 #    active: prod
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
