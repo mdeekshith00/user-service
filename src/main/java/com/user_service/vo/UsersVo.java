@@ -1,8 +1,6 @@
 package com.user_service.vo;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.common.enums.AddressType;
@@ -65,7 +63,6 @@ public class UsersVo {
     @Enumerated(EnumType.STRING)
 	private AddressType addressType;
 	
-    @Size(min =2 , max = 10)
     @Embedded
 	private Address address ;
 	
@@ -75,13 +72,6 @@ public class UsersVo {
 	private Boolean isActive;
 	
 	private Long loginCount;
-	
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private Timestamp lastLogin;
-	
-	private LocalDateTime createdAt;
-	
-	private LocalDateTime updatedAt;
 	
 	private String resetToken;
 	

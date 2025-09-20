@@ -5,10 +5,12 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import com.common.constants.CommonConstants;
 import com.common.constants.ErrorConstants;
-import com.common.enums.RoleType;
 import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
 import com.user_service.dto.JWTResponse;
@@ -47,7 +48,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	
 	private final UserRepositary userRepositary;
@@ -153,8 +153,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 						ErrorConstants.INVALID_DATA));
 	  log.debug("retriveing user from db {} : " + user.getUserId());
 	  UserDto uDto = new UserDto();
-	  
-//		return  MapperHelper.userToDto(user);
+
 	  uDto = UserDto.builder()
 			  .fullname(user.getFullName().getFirstName() + " " + user.getFullName().getSecondName()+ " " + user.getFullName().getLastName())
 			  .username(user.getUsername())
@@ -175,10 +174,23 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	@Transactional
 	public UserDto updateUsers(Integer userId, UpdateRequestVO updateRequestVO) {
 		// TODO Auto-generated method stub
-//		CommonUtils.verifyUserId(String.valueOf(userId));
+//		CommonUtils.verifyUserId(String.valueOf(userId));  
 		  Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
 				  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
 							ErrorConstants.INVALID_DATA));
+		  
+		  Set<Role> roles =  Optional.ofNullable(updateRequestVO.getRoles()).orElse(Collections.emptySet())
+				.stream().map(r -> {
+				if(r.getRole() == null) {
+					throw new BloodBankBusinessException(ErrorConstants.ROLE_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+							ErrorConstants.INVALID_DATA);          
+				}
+					 Role  role = Role.builder()
+							.role(r.getRole().name())
+							.description(r.getDescription()).build();
+					roleRepositary.save(role);
+					return role;
+			}).collect(Collectors.toSet());
 		  
 		  Optional.ofNullable(updateRequestVO.getFullname()).ifPresent(user::setFullName);
 		  Optional.ofNullable(updateRequestVO.getGender()).map(Enum::toString).ifPresent(user::setGender);
@@ -187,18 +199,16 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		  Optional.ofNullable(updateRequestVO.getAddress()).ifPresent(user::setAddress);
 		  Optional.ofNullable(updateRequestVO.getDateOfBirth()).ifPresent(user::setDateOfBirth);
 		  Optional.ofNullable(updateRequestVO.getWantToDonate()).ifPresent(user::setWantToDonate);
-
-		  user.setUpdatedAt(LocalDateTime.now());
-		  user = userRepositary.save(user);
-		  Role role = new Role();
-		  if(Boolean.TRUE.equals(user.getWantToDonate())) {
-			 role = roleRepositary.findByUsers(user).orElse(new Role());
-		  }
-		  role.setRole(RoleType.DONOR.name());
-		  role.setDescription("");
-		  role.setUsers(Set.of(user));
-		 role =  roleRepositary.save(role);
-		
+		  
+		  List<String> existingRoleList = user.getRoles().stream().map(role -> role.getRole().toUpperCase()).collect(Collectors.toList());
+		 boolean exists =  roles.stream().map(r -> r.getRole().toUpperCase()).anyMatch(rolename -> existingRoleList.stream().anyMatch(existing -> existing.equalsIgnoreCase(rolename)));
+		 
+		  if (!roles.isEmpty() && !exists) {
+			    user.getRoles().addAll(roles);
+			}
+		  
+		  user.setUpdatedAt(LocalDateTime.now()); 
+	      user = userRepositary.save(user);
 		 return userToDto(user);
 	}
 
@@ -219,20 +229,21 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	public String deleteUser(Integer userId) {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
-	  Users user = 	userRepositary.findById(userId)
-		.orElseThrow(() ->  new BloodBankBusinessException(null));
+	  Users user = 	userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId ,true,true)
+		.orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+				ErrorConstants.INVALID_DATA));
 	  
-	    if(Boolean.TRUE.equals(user.getIsActive()) && Boolean.TRUE.equals(user.getIsPhoneNumberVerified())) 
-	    {
-		
-		Optional.ofNullable(user.getIsActive().equals(null)).orElse(null);
-		Optional.ofNullable(user.getIsPhoneNumberVerified().equals(null)).orElse(null);
-		
+	    if(Boolean.TRUE.equals(user.getIsActive()) && Boolean.TRUE.equals(user.getIsPhoneNumberVerified())) {
+	    user.setIsActive(false);
+		user.setActiveStatus("PENDING_APPROVAL");
+		user.setIsPhoneNumberVerified(false);
+		userRepositary.save(user);
 	    }
 	    else {
-	    	throw new BloodBankBusinessException(null);
+	    	throw new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+					ErrorConstants.INVALID_DATA);
 	    }
-		log.info("delted user .." + userId);
+		log.info("deleted user .." + userId);
 	
 		return "User deleted on this Id: " + user.getUserId() + " on this Username " + user.getUsername();
 	}

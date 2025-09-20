@@ -1,6 +1,7 @@
 package com.user_service.vo;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import com.common.enums.AddressType;
 import com.common.enums.GenderType;
@@ -41,6 +42,8 @@ public class UpdateRequestVO extends BaseVO{
 	private LocalDate dateOfBirth;
 
 	private Boolean wantToDonate; 
+	
+	private Set<RoleVo> roles;
 
 	
 	
