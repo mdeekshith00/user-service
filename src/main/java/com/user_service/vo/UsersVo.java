@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.common.enums.AddressType;
+import com.common.enums.GenderType;
 import com.common.enums.LogInType;
 import com.common.enums.StatusType;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -45,13 +46,14 @@ public class UsersVo {
 	@NotNull
 	private String password;
 	
-	@Pattern( regexp = "^[6-9]\\d{9}$", message = "Invalid phone number")
+	@NotNull(message = "Phone number cannot be null")
+	@Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
 	private String phoneNumber;
 	
     private Boolean isPhoneNumberVerified;
-    
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private String gender;
+    private GenderType gender;
 
     
 	@Email(message = "Invalid email format")

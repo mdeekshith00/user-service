@@ -25,15 +25,13 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto extends BaseDTO {
 	
-    private FullNameVo fullname;
+    private String fullname;
 	
 	private String username;
 		
 	private String phoneNumber;
 	
     private Boolean isPhoneNumberVerified;
-
-    private String bloodGroup;
     
 	private String gender;
 
@@ -41,19 +39,17 @@ public class UserDto extends BaseDTO {
 
 	private AddressVo address ;
 
-	private Boolean isAvailableToDonate;
+//	private Boolean isAvailableToDonate;
 
 	private String addressType;
 	
 	private LocalDate dateOfBirth;
 	
 	private Boolean isActive;
-
-	private LocalDateTime createdAt;
 	
 	private LocalDateTime updatedAt;
 	
-	private LocalDateTime lastDonationDate;
+//	private LocalDateTime lastDonationDate;
 		
 	private String bio;
 	
