@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -24,14 +23,18 @@ import org.springframework.stereotype.Service;
 
 import com.common.constants.CommonConstants;
 import com.common.constants.ErrorConstants;
+import com.common.dto.DonorResponseDto;
+import com.common.enums.RoleType;
 import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
+import com.common.vo.RoleVo;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
 import com.user_service.entities.RefreshToken;
 import com.user_service.entities.Role;
 import com.user_service.entities.Users;
+import com.user_service.mapper.MapperHelper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
@@ -52,11 +55,12 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	
 	private final UserRepositary userRepositary;
 	private final RoleRepositary roleRepositary;
-//	private final MapperHelper mapperHelper;
+	private final UserNotificationService userNotificationService;
 	private final JWTService jwtServcie;
 	private final ModelMapper uModelMapper;
 	private final AuthenticationManager authManager;
 	private final RefreshTokenrepositary refreshTokenRepositary;
+	private final MapperHelper mapperHelper;
 	
 	private  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 	
@@ -66,22 +70,48 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		// TODO Auto-generated method stub
 	   Users user = new Users();
 	   log.info("user register...." );
-
 	   
+	   if (userVo.getUsername() == null || userVo.getUsername().isEmpty()) {
+	        throw new BloodBankBusinessException(ErrorConstants.INVALID_DATA, HttpStatus.BAD_REQUEST, "Username is required");
+	    }
+
+	    if (userVo.getPassword() == null || userVo.getPassword().isEmpty()) {
+	        throw new BloodBankBusinessException(ErrorConstants.INVALID_DATA, HttpStatus.BAD_REQUEST, "Password is required");
+	    }
+
+	    if (userVo.getRoles() == null || userVo.getRoles().isEmpty()) {
+	        throw new BloodBankBusinessException(ErrorConstants.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST, "At least one role must be assigned");
+	    }
+
+	    if (userVo.getEMail() == null || userVo.getEMail().isEmpty()) {
+	        throw new BloodBankBusinessException(ErrorConstants.INVALID_DATA,HttpStatus.BAD_REQUEST,"Email is required");
+	    }
+	    
+	    RoleVo role1 = userVo.getRoles().iterator().next();
+	    if (role1.getRole() == null) {
+	        throw new BloodBankBusinessException(
+	            ErrorConstants.ROLE_NOT_FOUND,
+	            HttpStatus.BAD_REQUEST,
+	            "Role cannot be null"
+	        );
+	    }
+	    
 	  Set<Role> roles =  userVo.getRoles().stream().map(r -> {
 			if(r.getRole() == null) {
 				throw new BloodBankBusinessException(ErrorConstants.ROLE_NOT_FOUND ,HttpStatus.BAD_REQUEST,
 						ErrorConstants.INVALID_DATA);          
 			}
-				Role role = new Role();
-				role = Role.builder()
-						.role(r.getRole().name())
-						.description(r.getDescription()).build();
-				roleRepositary.save(role);
-				return role;
-		
-		}
-				).collect(Collectors.toSet());
+			  Role existingRole = roleRepositary.findByRole(r.getRole().name());
+		        if (existingRole != null) {
+		            return existingRole;
+		        }
+		        Role role = Role.builder()
+		                .role(r.getRole().name())
+		                .description(r.getDescription())
+		                .build();
+
+		        return roleRepositary.save(role);
+		    }).collect(Collectors.toSet());
 				
 
 		 user = Users.builder()
@@ -102,6 +132,21 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 				.build();
 
 		user = userRepositary.save(user);
+		
+		final Integer userId = user.getUserId();
+		final String email = user.getEMail();
+		
+        // 2. If the user has DONOR role, notify donor-service asynchronously
+		user.getRoles().stream()
+	    .filter(r -> r.getRole().equalsIgnoreCase("DONOR")) // find DONOR role
+	    .findFirst()
+	    .ifPresent(donorRole -> {
+	        userNotificationService.notifyDonorServiceAsync(
+	        		userId,
+	        		email,
+	                donorRole   // passing the Role object
+	        );
+	    });
 		
 		UserDto userDto = uModelMapper.map(user, UserDto.class);
 		userDto.setStatus(CommonConstants.SUCESS);
@@ -187,7 +232,8 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 				}
 					 Role  role = Role.builder()
 							.role(r.getRole().name())
-							.description(r.getDescription()).build();
+							.description(r.getDescription())
+							.build(); 
 					roleRepositary.save(role);
 					return role;
 			}).collect(Collectors.toSet());
@@ -199,31 +245,17 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		  Optional.ofNullable(updateRequestVO.getAddress()).ifPresent(user::setAddress);
 		  Optional.ofNullable(updateRequestVO.getDateOfBirth()).ifPresent(user::setDateOfBirth);
 		  Optional.ofNullable(updateRequestVO.getWantToDonate()).ifPresent(user::setWantToDonate);
-		  
+		
 		  List<String> existingRoleList = user.getRoles().stream().map(role -> role.getRole().toUpperCase()).collect(Collectors.toList());
-		 boolean exists =  roles.stream().map(r -> r.getRole().toUpperCase()).anyMatch(rolename -> existingRoleList.stream().anyMatch(existing -> existing.equalsIgnoreCase(rolename)));
-		 
+			 boolean exists =  roles.stream().map(r -> r.getRole().toUpperCase()).anyMatch(rolename -> existingRoleList.stream().anyMatch(existing -> existing.equalsIgnoreCase(rolename)));
 		  if (!roles.isEmpty() && !exists) {
 			    user.getRoles().addAll(roles);
 			}
-		  
 		  user.setUpdatedAt(LocalDateTime.now()); 
 	      user = userRepositary.save(user);
-		 return userToDto(user);
+	      return mapperHelper.userToDto(user);
 	}
 
-	private UserDto userToDto(Users user) {
-		// TODO Auto-generated method stub
-	return   UserDto.builder()
-			.fullname(user.getFullName().toString())
-				 .eMail(user.getEMail())
-				 .gender(user.getGender())
-				 .dateOfBirth(user.getDateOfBirth())
-				 .addressType(user.getAddressType())
-				 .wantToDonate(user.getWantToDonate())
-				 .build();
-		
-	}
 	@Override
 //	@CacheEvict(value = "users", key = "#userId")
 	public String deleteUser(Integer userId) {
@@ -359,6 +391,31 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 			refreshToken.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
 		}
 		return refreshTokenRepositary.save(refreshToken);
+	}
+	@Override
+	public DonorResponseDto getDonorRole(Integer userId) {
+		// TODO Auto-generated method stub
+		  Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
+				  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+							ErrorConstants.INVALID_DATA));
+		Optional<Role> donorExists = user.getRoles().stream().filter(role -> role.getRole().equalsIgnoreCase(RoleType.DONOR.name())).findFirst();
+		if(!donorExists.isPresent()) {
+			new BloodBankBusinessException(ErrorConstants.ROLE_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
+					ErrorConstants.INVALID_DATA);
+		}
+		return DonorResponseDto.builder()
+				.userId(user.getUserId())
+				.fullname(user.getFullName().toString())
+				.username(user.getUsername())
+				.phoneNumber(user.getPhoneNumber())
+				.gender(user.getGender())
+				.eMail(user.getEMail())
+				.address(user.getAddress().toString())
+				.dateOfBirth(user.getDateOfBirth())
+				.bio(user.getBio())
+				.wantToDonate(user.getWantToDonate())
+				.role(donorExists.get().getRole())
+				.build();
 	}
 
 

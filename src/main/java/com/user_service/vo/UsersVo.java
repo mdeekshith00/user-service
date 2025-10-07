@@ -7,6 +7,7 @@ import com.common.enums.AddressType;
 import com.common.enums.GenderType;
 import com.common.enums.LogInType;
 import com.common.enums.StatusType;
+import com.common.vo.RoleVo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.entities.Address;

@@ -5,11 +5,9 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.common.dto.BaseDTO;
-import com.common.enums.AddressType;
+import com.common.vo.AddressVo;
+import com.common.vo.RoleVo;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.user_service.vo.AddressVo;
-import com.user_service.vo.FullNameVo;
-import com.user_service.vo.RoleVo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

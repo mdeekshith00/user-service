@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackages = "com.user_service.entities")
 @EnableJpaRepositories(basePackages = "com.user_service.repositary")
 @EnableTransactionManagement
-//@EnableDiscoveryClient
+@EnableDiscoveryClient
 public class  UserServiceApplication {
 
 	public static void main(String[] args) {
