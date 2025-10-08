@@ -52,4 +52,6 @@ public class PendingOutbound implements Serializable {
 
     @Column(name="created_at")
     private OffsetDateTime createdAt;
+    
+    private String header;
 }

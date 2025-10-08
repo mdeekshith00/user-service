@@ -17,7 +17,7 @@ public interface UserRepositary extends JpaRepository<Users, Integer>{
      
      @EntityGraph(attributePaths = {"roles"})
 	Optional<Users> findByUserIdAndIsActiveAndIsPhoneNumberVerified(Integer userId, boolean isActive , boolean isPhoneNumberVerified);
-	
+	Optional<Users> findByPhoneNumber(String mobileNumber);
 	Optional<Users> findByUsernameAndPhoneNumber(String username , String phoneNumber);
 	Optional<Users> findByUserIdAndIsActive(Integer userId, boolean isActive);
 	

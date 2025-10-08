@@ -1,8 +1,10 @@
 package com.user_service.mapper;
 
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Component;
+
+import com.common.enums.StatusType;
 import com.user_service.dto.UserDto;
 import com.user_service.entities.Users;
 
@@ -21,6 +23,7 @@ public class MapperHelper {
 				 .build();
 		
 	}
+
 	
 
 }

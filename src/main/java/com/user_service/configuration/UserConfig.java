@@ -23,14 +23,9 @@ public class UserConfig {
     @Bean
     WebClient donorWebClient(WebClient.Builder builder) {
         return builder
-//                .baseUrl("http://localhost:8081")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-                .defaultHeader("X-Service-Token", "my-shared-secret")
                 .build();
     }
-
-
-	
 	@Bean
 	 ModelMapper modelMapper() {
 	   return new ModelMapper();
