@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -209,22 +210,34 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	public UserDto updateUsers(Integer userId, UpdateRequestVO updateRequestVO) {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));  
-		  Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
+		 Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
 				  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
 							ErrorConstants.INVALID_DATA));
 		  
-		  Set<Role> roles =  Optional.ofNullable(updateRequestVO.getRoles()).orElse(Collections.emptySet())
-				.stream().filter(r -> r.getRole()!=null)
-				.map(r -> {	
-					 Role  role = Role.builder()
-							.role(r.getRole().toString())
-							.description(r.getDescription())
-							.build(); 
-					roleRepositary.save(role);
-					return role;
-				
-			}).collect(Collectors.toSet());
+		  Set<RoleVo> roleVo =  Optional.ofNullable(updateRequestVO.getRoles()).orElse(Collections.emptySet());
 		  
+           for(RoleVo vo : roleVo) {
+             if (vo == null || vo.getRole() == null) {
+                log.debug("Skipping null role entry.");
+                continue;
+            }
+           boolean existingRole = user.getRoles().stream()
+        		   .anyMatch(r->r.getRole().toUpperCase().equalsIgnoreCase(vo.getRole().toString()));
+           
+           if (existingRole) {
+               throw new BloodBankBusinessException(
+                       ErrorConstants.ROLE_ALREADY_EXISTS,
+                       HttpStatus.BAD_GATEWAY,
+                       ErrorConstants.INVALID_DATA
+               );
+           }
+           Role newRole = Role.builder()
+                   .role(vo.getRole().toString())
+                   .description(vo.getDescription())
+                   .build();
+
+           roleRepositary.save(newRole); 
+        } 
 		  Optional.ofNullable(updateRequestVO.getFullname()).ifPresent(user::setFullName);
 		  Optional.ofNullable(updateRequestVO.getGender()).map(Enum::toString).ifPresent(user::setGender);
 		  Optional.ofNullable(updateRequestVO.getEMail()).ifPresent(user::setEMail);
@@ -232,13 +245,6 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		  Optional.ofNullable(updateRequestVO.getAddress()).ifPresent(user::setAddress);
 		  Optional.ofNullable(updateRequestVO.getDateOfBirth()).ifPresent(user::setDateOfBirth);
 		  Optional.ofNullable(updateRequestVO.getWantToDonate()).ifPresent(user::setWantToDonate);
-		
-		  List<String> existingRoleList = user.getRoles().stream().map(role -> role.getRole().toUpperCase()).collect(Collectors.toList());
-		  Boolean exists =  roles.stream().map(r -> r.getRole().toUpperCase()).anyMatch(rolename -> existingRoleList.stream().anyMatch(existing -> !existing.equalsIgnoreCase(rolename)));
-		  log.info("comparing role with existing roles :" +  exists);
-		  if (exists) {
-			    user.getRoles().addAll(roles);
-			}
 		  user.setUpdatedAt(LocalDateTime.now()); 
 	      user = userRepositary.save(user);
 	      return mapperHelper.userToDto(user);

@@ -28,11 +28,11 @@ public class UserNotificationService {
 	private final String donorUrl = "http://localhost:8081/donor/internal/api/donors"; // http://localhost:8081/donor/internal/api/donors
 	private final String serviceToken = "my-shared-secret";
 
-	public void notifyDonorServiceAsync(Integer userId, String email, Role role) {
+	public void notifyDonorServiceAsync(Integer userId, String bloodGroup, Role role ) {
 
-		MinDonorVo payload = new MinDonorVo(userId, role.getRole().toString(), email);
+		MinDonorVo payload = new MinDonorVo(userId, role.getRole().toString(), bloodGroup);
 		log.debug("userId : " + userId);
-		log.debug("email : " + email);
+		log.debug("email : " + bloodGroup);
 		log.debug("role : " + role.getRole().toString());
 
 		donorWebClient
