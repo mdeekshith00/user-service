@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import com.common.enums.AddressType;
+import com.common.enums.BloodGroupType;
 import com.common.enums.GenderType;
 import com.common.enums.LogInType;
 import com.common.enums.StatusType;
@@ -44,6 +45,8 @@ public class UsersVo {
 	@Size(min =2 , max = 15)
 	@NotNull
 	private String password;
+	
+	private BloodGroupType bloodGroup;
 	
 	@NotNull(message = "Phone number cannot be null")
 	@Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")

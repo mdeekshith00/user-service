@@ -124,7 +124,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		log.info("user register...");
 		
 		final Integer userId = user.getUserId();
-		final String email = user.getEMail();
+		final String email = userVo.getBloodGroup().toString();
 		
         // 2. If the user has DONOR role, notify donor-service asynchronously
 		user.getRoles().stream()
