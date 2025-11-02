@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.common.constants.CommonConstants;
 import com.common.constants.ErrorConstants;
@@ -45,7 +45,6 @@ import com.user_service.vo.UpdateRequestVO;
 import com.user_service.vo.UsersVo;
 import com.user_service.vo.loginUservo;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,9 +69,10 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	@Transactional 
 	public UserDto register(UsersVo userVo) {
 		// TODO Auto-generated method stub
-	   Users user = userRepositary.findByPhoneNumber(userVo.getPhoneNumber())
-			   .orElseThrow(() -> new BloodBankBusinessException(ErrorConstants.USER_DETAILS_EXISTS ,HttpStatus.BAD_REQUEST,
-				ErrorConstants.INVALID_DATA));
+	   Users user = userRepositary.findByPhoneNumber(userVo.getPhoneNumber()).orElse(new Users());
+	   if(Boolean.TRUE.equals(user.getIsActive())) {
+			throw new BloodBankBusinessException(ErrorConstants.USER_DETAILS_ALREADY_EXISTS ,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA);          
+	   }
 	   log.info("creating new user");
 	   
 	   if (userVo.getUsername() == null || userVo.getUsername().isEmpty()) {
@@ -90,6 +90,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	    if (userVo.getEMail() == null || userVo.getEMail().isEmpty()) {
 	        throw new BloodBankBusinessException(ErrorConstants.INVALID_DATA,HttpStatus.BAD_REQUEST,"Email is required");
 	    }
+	    
 	  Set<Role> roles =  userVo.getRoles().stream().map(r -> {
 			if(r.getRole() == null) {
 				throw new BloodBankBusinessException(ErrorConstants.ROLE_NOT_FOUND ,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA);          
@@ -124,7 +125,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		log.info("user register...");
 		
 		final Integer userId = user.getUserId();
-		final String email = userVo.getBloodGroup().toString();
+		final String email = userVo.getEMail().toString();
 		
         // 2. If the user has DONOR role, notify donor-service asynchronously
 		user.getRoles().stream()
@@ -178,7 +179,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	}
 
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	public UserDto getUsersById(Integer userId) {
 		// TODO Auto-generated method stub
 //		CommonUtils.verifyUserId(String.valueOf(userId));
