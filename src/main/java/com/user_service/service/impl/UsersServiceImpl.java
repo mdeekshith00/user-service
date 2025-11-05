@@ -29,6 +29,7 @@ import com.common.enums.RoleType;
 import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
 import com.common.vo.RoleVo;
+import com.common.vo.UserEvent;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
@@ -39,6 +40,7 @@ import com.user_service.mapper.MapperHelper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
+import com.user_service.service.KafkaProducer;
 import com.user_service.service.RefreshTokenService;
 import com.user_service.service.UsersService;
 import com.user_service.vo.UpdateRequestVO;
@@ -61,6 +63,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	private final AuthenticationManager authManager;
 	private final RefreshTokenrepositary refreshTokenRepositary;
 	private final MapperHelper mapperHelper;
+	private final KafkaProducer kafkaProducer;
 	
 	private  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 	
@@ -137,6 +140,13 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	        		email,
 	                donorRole);
 	    });
+		// to notify user 
+		UserEvent event = new UserEvent();
+		   event.setEventType("USER_UPDATED");
+	        event.setUserId(String.valueOf(userId));
+	        event.setEmail(email);
+	        event.setMessage("User updated successfully!");
+		kafkaProducer.send(event);
 		
 		UserDto userDto = uModelMapper.map(user, UserDto.class);
 		userDto.setStatus(CommonConstants.SUCESS);
