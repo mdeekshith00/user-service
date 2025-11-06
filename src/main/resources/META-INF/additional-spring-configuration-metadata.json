@@ -43,5 +43,15 @@
     "name": "producer.key-serializer",
     "type": "java.lang.String",
     "description": "A description for 'producer.key-serializer'"
+  },
+  {
+    "name": "jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.secret'"
+  },
+  {
+    "name": "jwt.expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.expiration'"
   }
 ]}

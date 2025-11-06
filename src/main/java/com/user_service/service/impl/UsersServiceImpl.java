@@ -72,8 +72,8 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	@Transactional 
 	public UserDto register(UsersVo userVo) {
 		// TODO Auto-generated method stub
-	   Users user = userRepositary.findByPhoneNumber(userVo.getPhoneNumber()).orElse(new Users());
-	   if(Boolean.TRUE.equals(user.getIsActive())) {
+	   Optional<Users> existingUser = userRepositary.findByPhoneNumber(userVo.getPhoneNumber());
+	   if(existingUser.isPresent()) {
 			throw new BloodBankBusinessException(ErrorConstants.USER_DETAILS_ALREADY_EXISTS ,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA);          
 	   }
 	   log.info("creating new user");
@@ -107,7 +107,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		    }).collect(Collectors.toSet());
 				
 
-		 user = Users.builder()
+		 Users user = Users.builder()
 				.fullName(userVo.getFullname())
 				.username(userVo.getUsername())
 				.password(encoder.encode(userVo.getPassword()))
@@ -153,6 +153,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		userDto.setMessage(CommonConstants.USER_CREATED_SUCESSFULLY);
 		return userDto;
 	}
+	
 	@Override
 	public JWTResponse  login(loginUservo loginUservo) {
 		Users user = userRepositary.findByUsername(loginUservo.getUsername());

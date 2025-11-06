@@ -24,12 +24,13 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 	
 	private final JWTFilter sJWTFilter;
 	private final UserPrinicipalServiceImpl userPrinicipalServiceImpl ;
+    private final CustomAuthEntryPoint customAuthEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,18 +39,18 @@ public class SecurityConfig {
 				 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 //				 .cors(custom -> {}) // ensure CORS is configured if required
 		            .authorizeHttpRequests(auth -> auth
-		                    // public endpoints - ensure these match JWTFilter.shouldNotFilter
 		                    .requestMatchers("/auth/**" ,"/user/sign-up", "/user/sign-in", "/user/refresh-token").permitAll()
 		                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 		                    .anyRequest().authenticated()
 		                )
+	                .exceptionHandling(ex -> ex
+	                        .authenticationEntryPoint(customAuthEntryPoint)
+	                        .accessDeniedHandler(customAccessDeniedHandler)
+	                )
 		            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 					   .httpBasic(basic -> basic.disable())
 			            .formLogin(fl -> fl.disable())
-//		            .exceptionHandling(ex -> ex
-//		            	    .authenticationEntryPoint(new CustomAuthEntryPoint())
-//		            	    .accessDeniedHandler(new CustomAccessDeniedHandler())
-//		            	)
+
 		            .authenticationProvider(authenticationProvider())
 				.addFilterBefore(sJWTFilter, UsernamePasswordAuthenticationFilter.class)
 				.build();
