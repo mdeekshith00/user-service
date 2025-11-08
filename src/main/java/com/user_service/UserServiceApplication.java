@@ -7,11 +7,11 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@SpringBootApplication
 @EntityScan(basePackages = "com.user_service.entities")
 @EnableJpaRepositories(basePackages = "com.user_service.repositary")
 @EnableTransactionManagement
 @EnableDiscoveryClient
+@SpringBootApplication(scanBasePackages = {"com.user_service","com.common"})
 public class  UserServiceApplication {
 
 	public static void main(String[] args) {

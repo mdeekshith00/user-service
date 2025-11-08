@@ -6,7 +6,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +30,7 @@ import com.common.dto.DonorResponseDto;
 import com.common.enums.RoleType;
 import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
+import com.common.security.JWTService;
 import com.common.vo.RoleVo;
 import com.common.vo.UserEvent;
 import com.user_service.dto.JWTResponse;
@@ -135,11 +138,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	    .filter(r -> r.getRole().equalsIgnoreCase("DONOR"))
 	    .findFirst()
 	    .ifPresent(donorRole -> {
-	        userNotificationService.notifyDonorServiceAsync(
-	        		userId,
-	        		email,
-	                donorRole);
-	    });
+	        userNotificationService.notifyDonorServiceAsync(userId,email,donorRole);});
 		// to notify user 
 		UserEvent event = new UserEvent();
 		   event.setEventType("USER_UPDATED");
@@ -164,8 +163,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		user.setIsActive(Boolean.TRUE);
 		user.setLastLogin(Timestamp.from(Instant.now()));
 		user.setIsPhoneNumberVerified(Boolean.TRUE);
-        user.setLoginCount(Optional.ofNullable(user.getLoginCount())
-        		.map(count -> count+1).orElse((long) 1) );
+        user.setLoginCount(Optional.ofNullable(user.getLoginCount()).map(count -> count+1).orElse((long) 1) );
         user.setActiveStatus(StatusType.ACTIVE.name());
         
 		userRepositary.save(user);
@@ -180,8 +178,14 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		RefreshToken token =  createrefreshToken(loginUservo.getUsername());
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
           String jwt = null;
+          
+          Map<String, Object> claims = new HashMap<>();
+          claims.put("userId", user.getUserId());
+          claims.put("roles", user.getRoles().stream().map(Role::getRole).toList());
+          claims.put("phone", user.getPhoneNumber());
+
 		  if(authentication.isAuthenticated())
-              jwt =   jwtServcie.generateToken(user);
+              jwt =   jwtServcie.generateTokenFromClaims(claims);
 		  
            return  JWTResponse.builder()
                                   .accesToken(jwt)
@@ -346,7 +350,14 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	    	refreshToken = createOrUpdateRefreshToken(refreshToken.getUser());
 	    }
 
-	    String newAccessToken = jwtServcie.generateToken(refreshToken.getUser());
+	    Users user = refreshToken.getUser();
+
+	    Map<String, Object> claims = new HashMap<>();
+	    claims.put("userId", user.getUserId());
+	    claims.put("roles", user.getRoles().stream().map(Role::getRole).toList());
+	    claims.put("phone", user.getPhoneNumber());
+
+	    String newAccessToken = jwtServcie.generateTokenFromClaims(claims);
 
 	    return JWTResponse.builder()
 	            .accesToken(newAccessToken)
