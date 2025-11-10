@@ -19,7 +19,6 @@ import com.common.dto.DonorResponseDto;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
-import com.user_service.service.KafkaProducer;
 import com.user_service.service.UsersService;
 import com.user_service.vo.UpdateRequestVO;
 import com.user_service.vo.UsersVo;

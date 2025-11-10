@@ -42,9 +42,12 @@ public class UsersVo {
 	@NotNull
 	private String username;
 	
-	@Size(min =2 , max = 15)
-	@NotNull
+	@Size(min =2 , max = 15 , message = "password must be between 2 and 15 characters")
+	@NotNull(message = "password cannot be null")
 	private String password;
+	@Size(min = 2, max = 15, message = "Re-password must be between 2 and 15 characters")
+	@NotNull(message = "Re-password cannot be null")
+	private String rePassword;
 	
 	private BloodGroupType bloodGroup;
 	
