@@ -1,18 +1,18 @@
 package com.user_service.vo;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
+import com.common.enums.AddressType;
+import com.common.enums.BloodGroupType;
+import com.common.enums.GenderType;
+import com.common.enums.LogInType;
+import com.common.enums.StatusType;
+import com.common.vo.RoleVo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.entities.Address;
 import com.user_service.entities.FullName;
-import com.user_service.enums.AddressType;
-import com.user_service.enums.LogInType;
-import com.user_service.enums.StatusType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -42,17 +42,23 @@ public class UsersVo {
 	@NotNull
 	private String username;
 	
-	@Size(min =2 , max = 15)
-	@NotNull
+	@Size(min =2 , max = 15 , message = "password must be between 2 and 15 characters")
+	@NotNull(message = "password cannot be null")
 	private String password;
+	@Size(min = 2, max = 15, message = "Re-password must be between 2 and 15 characters")
+	@NotNull(message = "Re-password cannot be null")
+	private String rePassword;
 	
-	@Pattern( regexp = "^[6-9]\\d{9}$", message = "Invalid phone number")
+	private BloodGroupType bloodGroup;
+	
+	@NotNull(message = "Phone number cannot be null")
+	@Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
 	private String phoneNumber;
 	
     private Boolean isPhoneNumberVerified;
-    
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private String gender;
+    private GenderType gender;
 
     
 	@Email(message = "Invalid email format")
@@ -64,7 +70,6 @@ public class UsersVo {
     @Enumerated(EnumType.STRING)
 	private AddressType addressType;
 	
-    @Size(min =2 , max = 10)
     @Embedded
 	private Address address ;
 	
@@ -74,13 +79,6 @@ public class UsersVo {
 	private Boolean isActive;
 	
 	private Long loginCount;
-	
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private Timestamp lastLogin;
-	
-	private LocalDateTime createdAt;
-	
-	private LocalDateTime updatedAt;
 	
 	private String resetToken;
 	
@@ -92,8 +90,8 @@ public class UsersVo {
 	
 	private Boolean wantToDonate; 
 	
-	private List<UserHistoryVo> userHistoryvo;
-	
+//	private List<UserHistoryVo> userHistoryvo;
+//	
 	private Set<RoleVo> roles;
 
 }

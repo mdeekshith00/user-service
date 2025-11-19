@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -11,8 +12,10 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -60,36 +63,35 @@ public class Users  implements UserDetails , Serializable {
 	private String password;
 	@Column(nullable = false , unique = true)
 	private String phoneNumber;
-	
+	@Column
     private Boolean isPhoneNumberVerified;
     @Column(nullable = true)
 	private String gender;
-
+    @Column
 	private String eMail;
-	
 	@Column(name = "address_type" , nullable = false)
 	private String addressType;
 	@Embedded
 	private Address address ;
     @Past
 	private LocalDate dateOfBirth;
-    
+    @Column
 	private Boolean isActive;
-	
+	@Column
 	private String activeStatus; // e.g., "ACTIVE", "INACTIVE", "BANNED", "PENDING_APPROVAL"
-	
+	@Column
 	private Long loginCount;
-	
+	@Column
 	private Timestamp lastLogin;
-	
+	@Column
 	private LocalDateTime createdAt;
-	
+	@Column
 	private LocalDateTime updatedAt;
-	
+	@Column
 	private String resetToken;
-	
+	@Column
 	private String bio;
-	
+	@Column
 	private String logInProvider;
 	
 	@Column(name = "want_to_donate")
@@ -106,11 +108,12 @@ public class Users  implements UserDetails , Serializable {
 	}
 
 	
-	@ManyToMany(fetch = FetchType.EAGER)
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "users_role", 
 			joinColumns  = @JoinColumn(name = "user_id") ,
 	        inverseJoinColumns = @JoinColumn(name = "role_Id")
 	)
+	@JsonIgnore
 	private Set<Role> roles;
 
 	@Override
@@ -125,9 +128,14 @@ public class Users  implements UserDetails , Serializable {
 	@JsonManagedReference
     private RefreshToken refreshToken;
 	
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+	private List<AuditLog> auditLogs = new ArrayList<>();
+	
 	@OneToMany(mappedBy = "user")
 	@JsonManagedReference
 	private List<UserHistory> userHistory;
+	
 	
 	
 	public UserHistory  addHistory(UserHistory userHistory) {

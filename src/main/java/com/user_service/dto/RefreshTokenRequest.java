@@ -1,5 +1,6 @@
 package com.user_service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +8,7 @@ import lombok.Setter;
 @Getter
 public class RefreshTokenRequest {
 
+	@NotNull
 	private String refreshToken;
 
 }

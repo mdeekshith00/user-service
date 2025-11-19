@@ -3,13 +3,11 @@ package com.user_service.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.common.dto.BaseDTO;
+import com.common.vo.AddressVo;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.user_service.enums.AddressType;
-import com.user_service.vo.AddressVo;
 import com.user_service.vo.FullNameVo;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SearchDto extends BaseDto {
+public class SearchDto extends BaseDTO {
 	
 	  private FullNameVo fullname;
 		
