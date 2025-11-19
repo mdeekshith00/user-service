@@ -27,10 +27,6 @@ public class UserConfig {
                 .build();
     }
 	@Bean
-	 ModelMapper modelMapper() {
-	   return new ModelMapper();
-	}
-	@Bean
      Executor virtualThreadExecutor() {
 		return Executors.newVirtualThreadPerTaskExecutor();
 	}

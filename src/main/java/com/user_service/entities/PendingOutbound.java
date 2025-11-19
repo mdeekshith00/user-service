@@ -54,4 +54,6 @@ public class PendingOutbound implements Serializable {
     private OffsetDateTime createdAt;
     
     private String header;
+    
+    private String status;
 }

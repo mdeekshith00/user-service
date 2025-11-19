@@ -1,8 +1,8 @@
 package com.user_service.util;
 
 import com.common.exception.BloodBankBusinessException;
+import com.common.vo.SessionResponseVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.user_service.vo.SessionResponseVo;
 
 import lombok.extern.slf4j.Slf4j;
 

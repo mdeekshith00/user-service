@@ -32,7 +32,6 @@ import com.common.enums.StatusType;
 import com.common.exception.BloodBankBusinessException;
 import com.common.security.JWTService;
 import com.common.vo.RoleVo;
-import com.common.vo.UserEvent;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
@@ -43,9 +42,10 @@ import com.user_service.mapper.MapperHelper;
 import com.user_service.repositary.RefreshTokenrepositary;
 import com.user_service.repositary.RoleRepositary;
 import com.user_service.repositary.UserRepositary;
-import com.user_service.service.KafkaProducer;
 import com.user_service.service.RefreshTokenService;
 import com.user_service.service.UsersService;
+import com.user_service.util.HelperMethods;
+import com.user_service.util.KafkaHelpers;
 import com.user_service.vo.UpdateRequestVO;
 import com.user_service.vo.UsersVo;
 import com.user_service.vo.loginUservo;
@@ -60,13 +60,13 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	
 	private final UserRepositary userRepositary;
 	private final RoleRepositary roleRepositary;
-	private final UserNotificationService userNotificationService;
 	private final JWTService jwtServcie;
 	private final ModelMapper uModelMapper;
 	private final AuthenticationManager authManager;
 	private final RefreshTokenrepositary refreshTokenRepositary;
 	private final MapperHelper mapperHelper;
-	private final KafkaProducer kafkaProducer;
+	private final KafkaHelpers kafkaHelper;
+	private final HelperMethods helperMethod;
 	
 	private  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 	
@@ -134,22 +134,68 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		final Integer userId = user.getUserId();
 		final String email = userVo.getEMail().toString();
 		
-        // 2. If the user has DONOR role, notify donor-service asynchronously
-		user.getRoles().stream()
-	    .filter(r -> r.getRole().equalsIgnoreCase("DONOR"))
-	    .findFirst()
-	    .ifPresent(donorRole -> {
-	    	log.info("Notifiying donor servie ...");
-	        userNotificationService.notifyDonorServiceAsync(userId,email,donorRole);});
-		// to notify user 
+	    // Notify downstream services based on roles
+	    user.getRoles().forEach(role -> {
+	        String roleName = role.getRole();
+	        try {
+	            switch (roleName.toUpperCase()) {
+	                case "DONOR":
+	                    log.info("Notifying donor-service for userId {}", userId);
+	                    // REST call (immediate)
+	                    helperMethod.notifyDonorService(userId, email, userVo);
+	                    // Kafka fallback/event
+//	                    kafkaHelper.publishUserEvent(userId, email, "DONOR_CREATED");
+	                    break;
+
+	                case "HOSPITAL_ADMIN":
+	                    log.info("Notifying hospital-service for hospital admin userId {}", userId);
+	                    helperMethod.notifyHospitalServiceForAdmin(userId, email, userVo);
+//	                    kafkaHelper.publishUserEvent(userId, email, "HOSPITAL_ADMIN_CREATED");
+	                    break;
+
+	                case "HOSPITAL_STAFF":
+	                    log.info("Notifying hospital-service for staff userId {}", userId);
+	                    helperMethod.notifyHospitalServiceForStaff(userId, email, userVo);
+//	                    kafkaHelper.publishUserEvent(userId, email, "HOSPITAL_STAFF_CREATED");
+	                    break;
+
+	                case "CAMP_COORDINATOR":
+	                    log.info("Notifying camp-service for coordinator userId {}", userId);
+	                    helperMethod.notifyCampServiceCoordinator(userId, email, userVo);
+//	                    kafkaHelper.publishUserEvent(userId, email, "CAMP_COORDINATOR_CREATED");
+	                    break;
+
+	                case "VOLUNTEER":
+	                    log.info("Notifying camp-service for volunteer userId {}", userId);
+	                    helperMethod.notifyCampServiceVolunteer(userId, email, userVo);
+//	                    kafkaHelper.publishUserEvent(userId, email, "VOLUNTEER_CREATED");
+	                    break;
+
+	                case "AUDITOR":
+	                    // Auditors may not need a domain entity, just an event for auditing systems
+	                    log.info("Publishing AUDITOR_CREATED event for userId {}", userId);
+//	                    kafkaHelper.publishUserEvent(userId, email, "AUDITOR_CREATED");
+	                    break;
+
+	                case "ADMIN":
+	                case "SYSTEM":
+	                    // No domain entity creation required - just produce event for visibility
+	                    log.info("Publishing {} event for userId {}", roleName, userId);
+//	                    kafkaHelper.publishUserEvent(userId, email, roleName + "_GRANTED");
+	                    break;
+
+	                default:
+	                    log.warn("Role {} not mapped to downstream action. Skipping.", roleName);
+	            }
+	        } catch (Exception ex) {
+	            // Don't rollback user creation for downstream failures.
+	            log.error("Error while notifying for role {} for userId {} : {}", roleName, userId, ex.getMessage(), ex);
+	            // Publish a failure event to kafka for later reconciliation
+//	            kafkaProducer(userId, email, roleName + "_CREATE_FAILED", ex.getMessage());
+	        }
+	    });
+
 		log.info("Sending event to Notification-service using kafka producer...");
-//		UserEvent event = new UserEvent();
-//		   event.setEventType("USER_UPDATED");
-//	        event.setUserId(String.valueOf(userId));
-//	        event.setEmail(email);
-//	        event.setMessage("User updated successfully!");
-//	        
-//		kafkaProducer.send(event);
 		
 		UserDto userDto = uModelMapper.map(user, UserDto.class);
 		userDto.setStatus(CommonConstants.SUCESS);
@@ -368,17 +414,6 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	            .build();
 	}
 
-	public RefreshToken createrefreshToken(Users user) {
-		RefreshToken refreshToken = RefreshToken.builder()
-				         .user(user)
-		                 .token((UUID.randomUUID() + user.getUsername() + user.getUserId()).toString())
-		                 .expiryDate(Instant.now().plusSeconds(3600))
-		                 .build();
-		
-		return refreshTokenRepositary.save(refreshToken);
-		
-	}
-
 	public Optional<RefreshToken> findByToken(String token) {
 		 log.info("Searching for token: {}", token);
 		 return Optional.ofNullable(refreshTokenRepositary.findByToken(token))
@@ -438,5 +473,23 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 				.build();
 	}
 
+	@Override
+	public RefreshToken createrefreshToken(Users user) {
+		// TODO Auto-generated method stub
+	    RefreshToken existingToken = refreshTokenRepositary.findByUser(user).get();
 
+	    if (existingToken != null) {
+	        existingToken.setToken(UUID.randomUUID().toString());
+	        existingToken.setExpiryDate(Instant.now().plusSeconds(3600));
+	        return refreshTokenRepositary.save(existingToken);
+	    }
+
+	    RefreshToken refreshToken = RefreshToken.builder()
+	            .user(user)
+	            .token(UUID.randomUUID().toString())
+	            .expiryDate(Instant.now().plusSeconds(3600))
+	            .build();
+
+	    return refreshTokenRepositary.save(refreshToken);
+	}
 }
