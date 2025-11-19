@@ -8,6 +8,8 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -17,11 +19,13 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
 public class UserConfig {
-	
-	@Bean
-	 ModelMapper modelMapper() {
-	   return new ModelMapper();
-	}
+
+    @Bean
+    WebClient donorWebClient(WebClient.Builder builder) {
+        return builder
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                .build();
+    }
 	@Bean
      Executor virtualThreadExecutor() {
 		return Executors.newVirtualThreadPerTaskExecutor();

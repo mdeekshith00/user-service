@@ -40,6 +40,11 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
+    <groupId>com.vladmihalcea</groupId>
+    <artifactId>hibernate-types-60</artifactId>
+    <version>2.21.1</version>
+</dependency>
+		<dependency>
     <groupId>org.flywaydb</groupId>
     <artifactId>flyway-core</artifactId>
 </dependency>
@@ -48,10 +53,7 @@
     <groupId>org.flywaydb</groupId>
     <artifactId>flyway-database-postgresql</artifactId>
     </dependency>
-		<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-security</artifactId>
-      </dependency>
+
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -71,7 +73,14 @@
     <artifactId>spring-boot-devtools</artifactId>
     <optional>true</optional>
 </dependency>
-
+    <dependency>
+    <groupId>io.projectreactor</groupId>
+    <artifactId>reactor-core</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+  </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -87,25 +96,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-          <groupId>io.jsonwebtoken</groupId>
-           <artifactId>jjwt-api</artifactId>
-           <version>0.11.5</version>
-           </dependency>
-<!--  JJWT Implementation (Required)  -->
-       <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-             <version>0.11.5</version>
-              <scope>runtime</scope>
-            </dependency>
-<!--  JSON Serializer (Jackson)  -->
-         <dependency>
-          <groupId>io.jsonwebtoken</groupId>
-          <artifactId>jjwt-jackson</artifactId>
-          <version>0.11.5</version>
-          <scope>runtime</scope>
-         </dependency>
-		
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+     </dependency>
+
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
@@ -123,8 +117,6 @@
         </dependency>
     </dependencies>
 </dependencyManagement>
-
-
 	<build>
 		<plugins>
 			<plugin>

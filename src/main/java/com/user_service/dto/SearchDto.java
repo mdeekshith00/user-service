@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.common.dto.BaseDTO;
+import com.common.vo.AddressVo;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.user_service.vo.AddressVo;
 import com.user_service.vo.FullNameVo;
 
 import lombok.AllArgsConstructor;

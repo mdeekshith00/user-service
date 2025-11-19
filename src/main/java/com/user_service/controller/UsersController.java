@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.common.dto.BaseDTO;
+import com.common.dto.DonorResponseDto;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
@@ -79,5 +80,9 @@ public class UsersController {
 	@GetMapping(path = "/get-all")
 	public  ResponseEntity<List<?>> getAllUsers() {
 	   return  ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
+	}
+	@GetMapping("/donor-details/{userId}")
+	public ResponseEntity<DonorResponseDto> getDonorRole(@PathVariable Integer userId) {
+		 return  ResponseEntity.status(HttpStatus.OK).body(userService.getDonorRole(userId));
 	}
 }

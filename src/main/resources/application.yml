@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate     # ✅ let Flyway handle schema, just validate on app startup
+      ddl-auto: update     # ✅ let Flyway handle schema, just validate on app startup
 
     show-sql: false
     properties:
@@ -29,8 +29,27 @@ spring:
 
 #  profiles:
 #    active: prod
+#eureka:
+#  client:
+#    register-with-eureka: false
+#    fetch-registry: false
+internal:
+  donor:
+    url: http://localhost:8082/donor/internal/api/donors
+  service-token: my-shared-secret
+kafka:
+ bootstrap-servers: localhost:9092
+consumer:
+ group-id: bloodbank
+ auto-offset-reset: earliest
+ key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+ value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+producer:
+ key-serializer: org.apache.kafka.common.serialization.StringSerializer
+ value-serializer: org.apache.kafka.common.serialization.StringSerializer
+ 
 eureka:
-  client:
-    register-with-eureka: false
-    fetch-registry: false
+   instance:
+     prefer-ip-address: true
+
 

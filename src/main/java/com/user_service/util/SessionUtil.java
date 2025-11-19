@@ -5,10 +5,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.common.vo.SessionResponseVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.user_service.entities.Users;
-import com.user_service.vo.SessionResponseVo;
 
 @Service
 public class SessionUtil {

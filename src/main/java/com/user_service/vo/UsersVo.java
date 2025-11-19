@@ -4,9 +4,11 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import com.common.enums.AddressType;
+import com.common.enums.BloodGroupType;
 import com.common.enums.GenderType;
 import com.common.enums.LogInType;
 import com.common.enums.StatusType;
+import com.common.vo.RoleVo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.user_service.entities.Address;
@@ -40,9 +42,14 @@ public class UsersVo {
 	@NotNull
 	private String username;
 	
-	@Size(min =2 , max = 15)
-	@NotNull
+	@Size(min =2 , max = 15 , message = "password must be between 2 and 15 characters")
+	@NotNull(message = "password cannot be null")
 	private String password;
+	@Size(min = 2, max = 15, message = "Re-password must be between 2 and 15 characters")
+	@NotNull(message = "Re-password cannot be null")
+	private String rePassword;
+	
+	private BloodGroupType bloodGroup;
 	
 	@NotNull(message = "Phone number cannot be null")
 	@Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")

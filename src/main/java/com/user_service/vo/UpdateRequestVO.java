@@ -6,6 +6,7 @@ import java.util.Set;
 import com.common.enums.AddressType;
 import com.common.enums.GenderType;
 import com.common.vo.BaseVO;
+import com.common.vo.RoleVo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.user_service.entities.Address;
 import com.user_service.entities.FullName;

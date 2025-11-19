@@ -2,6 +2,7 @@ package com.user_service.service;
 
 import java.util.List;
 
+import com.common.dto.DonorResponseDto;
 import com.user_service.dto.JWTResponse;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
@@ -20,6 +21,7 @@ public interface UsersService {
 	String forgotPassword(String username);
 	String resetPassword(String username , String resetPassword , String password);
 	JWTResponse refreshToken(RefreshTokenRequest refreshToken);
+	DonorResponseDto getDonorRole(Integer userId);
 		
 //   Page<SearchDto> getPaginatedUsersandBloodGroup(int page, int size, String bloodGroup);
 

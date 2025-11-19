@@ -13,4 +13,6 @@ public interface RoleRepositary  extends JpaRepository<Role, Integer>{
 	
 	Optional<Role> findByUsers(Users user);
 
+	Role findByRole(String name);
+
 }
