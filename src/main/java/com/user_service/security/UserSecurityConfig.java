@@ -9,11 +9,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.common.security.CommonSecurityConfig;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
+@RequiredArgsConstructor
 public class UserSecurityConfig {
+
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     @Order(1)
@@ -28,9 +32,10 @@ public class UserSecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+            // 🔥 add our JWT filter BEFORE UsernamePasswordAuthenticationFilter
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }
-
 
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -41,5 +46,4 @@ public class UserSecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
