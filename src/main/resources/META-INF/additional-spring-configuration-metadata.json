@@ -1,0 +1,57 @@
+{"properties": [
+  {
+    "name": "spring.jpa.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.jpa.enabled'"
+  },
+  {
+    "name": "spring.jpa.baseline-on-migrate",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.jpa.baseline-on-migrate'"
+  },
+  {
+    "name": "spring.jpa.locations",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.jpa.locations'"
+  },
+  {
+    "name": "spring.jpa.validate-on-migrate",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.jpa.validate-on-migrate'"
+  },
+  {
+    "name": "kafka.bootstrap-servers",
+    "type": "java.lang.String",
+    "description": "A description for 'kafka.bootstrap-servers'"
+  },
+  {
+    "name": "internal.donor.url",
+    "type": "java.lang.String",
+    "description": "A description for 'internal.donor.url'"
+  },
+  {
+    "name": "internal.service-token",
+    "type": "java.lang.String",
+    "description": "A description for 'internal.service-token'"
+  },
+  {
+    "name": "consumer.group-id",
+    "type": "java.lang.String",
+    "description": "A description for 'consumer.group-id'"
+  },
+  {
+    "name": "producer.key-serializer",
+    "type": "java.lang.String",
+    "description": "A description for 'producer.key-serializer'"
+  },
+  {
+    "name": "jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.secret'"
+  },
+  {
+    "name": "jwt.expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.expiration'"
+  }
+]}
