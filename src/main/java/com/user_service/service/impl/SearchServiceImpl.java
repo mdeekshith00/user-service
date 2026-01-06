@@ -1,5 +1,6 @@
 package com.user_service.service.impl;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -12,6 +13,9 @@ import com.common.dto.SearchBloodInventoryDTO;
 import com.common.dto.SearchDonorDTO;
 import com.common.dto.SearchHospitalInventoryDTO;
 import com.common.dto.SearchResultDTO;
+import com.user_service.entities.Users;
+import com.user_service.mapper.MapperHelper;
+import com.user_service.repositary.UserRepositary;
 import com.user_service.service.SearchService;
 import com.user_service.util.CacheKeyUtil;
 
@@ -25,6 +29,8 @@ import reactor.core.publisher.Mono;
 public class SearchServiceImpl implements SearchService {
 
     private final WebClient webClient;
+    private final UserRepositary userRespositary;
+    private final MapperHelper mapperHelp;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String DONOR_URL = "http://donor-service/donors/search";
@@ -93,11 +99,25 @@ public class SearchServiceImpl implements SearchService {
 
         // 4. Combine async results
         SearchResultDTO result = Mono.zip(donorMono, bankMono, hospitalMono)
-                .map(tuple -> new SearchResultDTO(
-                        tuple.getT1(),
-                        tuple.getT2(),
-                        tuple.getT3()))
-                .block();
+        	    .map(tuple -> {
+
+        	        PageResponse<SearchDonorDTO> donorResponse = tuple.getT1();
+
+        	        // 🔥 Fetch willing donors from user table
+        	        List<Users> willingUsers = userRespositary.findByWantToDonateTrue();
+        	        List<SearchDonorDTO> willingUserDtos = willingUsers.stream()
+        	                .map(mapperHelp::userToSearchDonorDTO)
+        	                .toList();
+
+        	        donorResponse.getContent().addAll(willingUserDtos);
+
+        	        return new SearchResultDTO(
+        	                donorResponse,
+        	                tuple.getT2(),
+        	                tuple.getT3());
+        	    })
+        	    .block();
+
         // 🔥 5. Store in Redis with TTL 5 minutes
         redisTemplate.opsForValue().set(cacheKey, result, 5, TimeUnit.MINUTES);
 

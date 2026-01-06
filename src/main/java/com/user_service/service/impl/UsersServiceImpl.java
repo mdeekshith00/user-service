@@ -210,6 +210,12 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 			throw new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
 					ErrorConstants.INVALID_DATA);
 		}
+		boolean exist  = user.getRoles().stream().anyMatch(role -> role.getRole() == RoleType.DONOR.toString());
+		if(exist)
+			user.setWantToDonate(Boolean.TRUE);
+		else
+			user.setWantToDonate(Boolean.FALSE);
+		
 		user.setIsActive(Boolean.TRUE);
 		user.setLastLogin(Timestamp.from(Instant.now()));
 		user.setIsPhoneNumberVerified(Boolean.TRUE);
@@ -274,47 +280,75 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	@Override
 	@Transactional
 	public UserDto updateUsers(Integer userId, UpdateRequestVO updateRequestVO) {
-		// TODO Auto-generated method stub
-//		CommonUtils.verifyUserId(String.valueOf(userId));  
-		log.info("Fetching user details to upadte {}" , userId);
-		 Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
-				  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
-							ErrorConstants.INVALID_DATA));
-		  
-		  Set<RoleVo> roleVo =  Optional.ofNullable(updateRequestVO.getRoles()).orElse(Collections.emptySet());
-		  
-           for(RoleVo vo : roleVo) {
-             if (vo == null || vo.getRole() == null) {
-                log.debug("Skipping null role entry.");
-                continue;
-            }
-           boolean existingRole = user.getRoles().stream()
-        		   .anyMatch(r->r.getRole().equalsIgnoreCase(vo.getRole().name()));
-           
-           if (existingRole) {
-               throw new BloodBankBusinessException(ErrorConstants.ROLE_ALREADY_EXISTS,HttpStatus.BAD_GATEWAY,ErrorConstants.INVALID_DATA);
-           }
-           Role newRole = Role.builder()
-                   .role(vo.getRole().toString())
-                   .description(vo.getDescription())
-                   .build();
-           
-           log.info("Saving new role  {}" , newRole.getRole());
-           roleRepositary.save(newRole); 
-           log.info("newRole Adding to User {}" , user.getUserId());
-           user.getRoles().add(newRole);
-        } 
-		  Optional.ofNullable(updateRequestVO.getFullname()).ifPresent(user::setFullName);
-		  Optional.ofNullable(updateRequestVO.getGender()).map(Enum::toString).ifPresent(user::setGender);
-		  Optional.ofNullable(updateRequestVO.getEMail()).ifPresent(user::setEMail);
-		  Optional.ofNullable(updateRequestVO.getAddressType()).map(Enum::toString).ifPresent(user::setAddressType);
-		  Optional.ofNullable(updateRequestVO.getAddress()).ifPresent(user::setAddress);
-		  Optional.ofNullable(updateRequestVO.getDateOfBirth()).ifPresent(user::setDateOfBirth);
-		  Optional.ofNullable(updateRequestVO.getWantToDonate()).ifPresent(user::setWantToDonate);
-		  user.setUpdatedAt(LocalDateTime.now()); 
-		  log.info("Sucessfully user updated..{}" , user.getUserId());
-	      user = userRepositary.save(user);
-	      return mapperHelper.userToDto(user);
+
+	    log.info("Fetching user details to update {}", userId);
+
+	    Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId, true, true)
+	            .orElseThrow(() -> new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA));
+
+	    // ------- 1️⃣ Handle manual role assignment --------
+	    Set<RoleVo> inputRoles = Optional.ofNullable(updateRequestVO.getRoles()).orElse(Collections.emptySet());
+
+	    for (RoleVo vo : inputRoles) {
+
+	        if (vo == null || vo.getRole() == null) continue;
+
+	        boolean exists = user.getRoles().stream()
+	                .anyMatch(r -> r.getRole().equalsIgnoreCase(vo.getRole().name()));
+
+	        if (exists) {
+	            throw new BloodBankBusinessException(ErrorConstants.ROLE_ALREADY_EXISTS,HttpStatus.BAD_GATEWAY,ErrorConstants.INVALID_DATA);
+	        }
+
+	        Role newRole = roleRepositary.save(Role.builder()
+	                .role(vo.getRole().name())
+	                .description(vo.getDescription())
+	                .build());
+
+	        user.getRoles().add(newRole);
+	        log.info("Role {} added manually to user {}", newRole.getRole(), userId);
+	    }
+
+	    // ------- 2️⃣ Auto-assign DONOR role when selecting wantToDonate --------
+	    if (Boolean.TRUE.equals(updateRequestVO.getWantToDonate())
+	    		&& !Boolean.TRUE.equals(user.getWantToDonate())) {
+
+	        boolean alreadyDonor = user.getRoles().stream()
+	                .anyMatch(role -> role.getRole().equalsIgnoreCase(RoleType.DONOR.name()));
+
+	        if (!alreadyDonor) {
+	            log.info("User {} selected wantToDonate, assigning DONOR role...", userId);
+
+	            Role donorRole = roleRepositary.findByRoleIgnoreCase(RoleType.DONOR.name()).get();
+
+	            if (donorRole == null) {
+	                donorRole = roleRepositary.save(Role.builder()
+	                        .role(RoleType.DONOR.name())
+	                        .description("Auto assigned donor role")
+	                        .build());
+	            }
+
+	            user.getRoles().add(donorRole);
+	            log.info("Auto DONOR role added to user {}", userId);
+	        }
+	    }
+
+	    // ------- 3️⃣ Update normal fields --------
+	    Optional.ofNullable(updateRequestVO.getFullname()).ifPresent(user::setFullName);
+	    Optional.ofNullable(updateRequestVO.getGender()).map(Enum::toString).ifPresent(user::setGender);
+	    Optional.ofNullable(updateRequestVO.getEMail()).ifPresent(user::setEMail);
+	    Optional.ofNullable(updateRequestVO.getAddressType()).map(Enum::toString).ifPresent(user::setAddressType);
+	    Optional.ofNullable(updateRequestVO.getAddress()).ifPresent(user::setAddress);
+	    Optional.ofNullable(updateRequestVO.getDateOfBirth()).ifPresent(user::setDateOfBirth);
+	    Optional.ofNullable(updateRequestVO.getWantToDonate()).ifPresent(user::setWantToDonate);
+
+	    user.setUpdatedAt(LocalDateTime.now());
+
+	    log.info("User {} updated successfully.", userId);
+
+	    user = userRepositary.save(user);
+
+	    return mapperHelper.userToDto(user);
 	}
 
 	@Override
