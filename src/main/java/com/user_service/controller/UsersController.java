@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.user_service.dto.BaseDto;
+import com.common.dto.BaseDTO;
+import com.common.dto.DonorResponseDto;
 import com.user_service.dto.JWTResponse;
-import com.user_service.dto.MinUserDto;
 import com.user_service.dto.RefreshTokenRequest;
 import com.user_service.dto.UserDto;
 import com.user_service.service.UsersService;
+import com.user_service.vo.UpdateRequestVO;
 import com.user_service.vo.UsersVo;
 import com.user_service.vo.loginUservo;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,25 +32,23 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "User APIs", description = "Operations related to Users")
 public class UsersController {
 	
 	private final UsersService userService;
-//	private final Executor virtualThreadExecutor;
 	
 	@PostMapping("/sign-up")
-	public ResponseEntity<BaseDto> register(@RequestBody UsersVo userVo) {
+	public ResponseEntity<BaseDTO> register(@RequestBody @Valid UsersVo userVo) {
 		UserDto user = 	userService.register(userVo);
 		return  ResponseEntity.status(HttpStatus.CREATED).body(user);
 	}
 	
 	@PostMapping("/sign-in")
-	 public ResponseEntity<JWTResponse>  login(@RequestBody loginUservo loginUservo) {
+	 public ResponseEntity<JWTResponse>  login(@RequestBody @Valid loginUservo loginUservo) {
 		return ResponseEntity.ok().body(userService.login(loginUservo));
 				
 	}
 	@PostMapping("/refresh-token")
-	 public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+	 public ResponseEntity<?> refreshToken(@RequestBody @Valid RefreshTokenRequest request) { 
 			return ResponseEntity.ok().body(userService.refreshToken(request));
 	  }
 	
@@ -64,20 +62,14 @@ public class UsersController {
 		return ResponseEntity.status(HttpStatus.OK).body(userService.resetPassword(username, resetPassword, password));
 	}
 	
-	@Operation(summary = "Get user by ID", description = "Returns a single user by their ID")
 	 @GetMapping("/{userId}")
-	public ResponseEntity<BaseDto> getUsersById(@PathVariable Integer userId) {
- 
-//		return CompletableFuture.supplyAsync(()-> {
-//			UserDto user = userService.getUsersById(userId);
-//			return ResponseEntity.status(HttpStatus.OK).body(user);
-//		} , virtualThreadExecutor );
+	public ResponseEntity<UserDto> getUsersById(@PathVariable Integer userId) {
 		return  ResponseEntity.status(HttpStatus.OK).body(userService.getUsersById(userId));
 	}
 	 
 	@PutMapping("/update/{userId}")
-	public ResponseEntity<BaseDto> updateUsers(@PathVariable Integer userId,@RequestBody UsersVo userVo) {
-		return  ResponseEntity.status(HttpStatus.OK).body(userService.updateUsers(userId, userVo));
+	public ResponseEntity<BaseDTO> updateUsers(@PathVariable Integer userId, @Valid @RequestBody UpdateRequestVO updateRequestVO) {
+		return  ResponseEntity.status(HttpStatus.OK).body(userService.updateUsers(userId, updateRequestVO));
 	}
 	
 	@DeleteMapping(path = "/delete/{userId}")
@@ -89,14 +81,8 @@ public class UsersController {
 	public  ResponseEntity<List<?>> getAllUsers() {
 	   return  ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
 	}
-//	@GetMapping
-//	public ResponseEntity<Page<SearchDto>> getByBloodGroupByUsers(
-//	        @RequestParam(defaultValue = "0") int page,
-//	        @RequestParam(defaultValue = "10") int size,
-//	        @RequestParam String bloodGroup) {
-//
-//	    return ResponseEntity.ok(userService.getPaginatedUsersandBloodGroup(page, size, bloodGroup));
-//	} 
-
-
+	@GetMapping("/donor-details/{userId}")
+	public ResponseEntity<DonorResponseDto> getDonorRole(@PathVariable Integer userId) {
+		 return  ResponseEntity.status(HttpStatus.OK).body(userService.getDonorRole(userId));
+	}
 }
