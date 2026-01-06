@@ -1,12 +1,6 @@
 package com.user_service.controller;
 
-<<<<<<< HEAD
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-public class UsersController {
-
-=======
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -92,5 +86,5 @@ public class UsersController {
 	public ResponseEntity<DonorResponseDto> getDonorRole(@PathVariable Integer userId) {
 		 return  ResponseEntity.status(HttpStatus.OK).body(userService.getDonorRole(userId));
 	}
->>>>>>> 461be25bf30961215b2a0ec748bf111b14d46c50
+
 }

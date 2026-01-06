@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-package com.user_service.service;
-
-import com.user_service.entities.Users;
-import com.user_service.vo.UsersVo;
-
-public interface UsersService {
-	Users addUsers(UsersVo userVo);
-	Users getUsersById(Integer uId);
-	Users updateUsers(Integer uId, UsersVo userVo);
-	void deleteUsers(Integer uId);
-	Users getAllUsers();
-=======
-
 package com.user_service.service;
 
 import java.util.List;
@@ -38,7 +24,7 @@ public interface UsersService {
 	DonorResponseDto getDonorRole(Integer userId);
 		
 //   Page<SearchDto> getPaginatedUsersandBloodGroup(int page, int size, String bloodGroup);
->>>>>>> 461be25bf30961215b2a0ec748bf111b14d46c50
+
 
 }
  

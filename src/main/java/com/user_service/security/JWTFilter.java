@@ -9,7 +9,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.user_service.service.impl.JWTService;
+import com.user_service.service.impl.JWTUserService;
 import com.user_service.service.impl.UserPrinicipalServiceImpl;
 
 import jakarta.servlet.FilterChain;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class JWTFilter  extends OncePerRequestFilter {
 	
 	private final UserPrinicipalServiceImpl JuserServiceImpl;
-	private final JWTService jJwtService;
+	private final JWTUserService jJwtService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

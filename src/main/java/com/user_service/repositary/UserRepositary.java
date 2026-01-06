@@ -1,14 +1,8 @@
 package com.user_service.repositary;
 
-<<<<<<< HEAD
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.user_service.entities.Users;
-
-public interface UserRepositary extends JpaRepository<Users, Integer>{
-
-	Users findByUsername(String username);
-=======
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -44,8 +38,4 @@ public interface UserRepositary extends JpaRepository<Users, Integer>{
 	    // With pagination
 //	  Page<Users> findByWantToDonateTrueAndBloodGroupAndAddressContainingIgnoreCase(
 //	            String bloodGroup, String location, Pageable pageable);
-	
-	
->>>>>>> 461be25bf30961215b2a0ec748bf111b14d46c50
-
 }

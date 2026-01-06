@@ -23,29 +23,19 @@ import lombok.Setter;
 @Entity
 @Builder
 @Table(name = "roles")
-public class Role  implements Serializable {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2088123644343682146L;
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-<<<<<<< HEAD
-	private Integer rId;
-	@Column(nullable = false)
-	private String role;
-	
-	private String description; // @Column(nullable = false, unique = true)
-=======
-	private Integer roleId;
-	@Column(nullable = false)
-	private String role;
-	
-	private String description; 
->>>>>>> 461be25bf30961215b2a0ec748bf111b14d46c50
-	
-	@ManyToMany
-	private Set<Users> users;
+public class Role implements Serializable {
 
+    private static final long serialVersionUID = 2088123644343682146L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer roleId;
+
+    @Column(nullable = false)
+    private String role;
+
+    private String description;
+
+    @ManyToMany(mappedBy = "roles")
+    private Set<Users> users;
 }
