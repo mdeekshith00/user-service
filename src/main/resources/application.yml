@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update     # ✅ let Flyway handle schema, just validate on app startup
+      ddl-auto: validate     # ✅ let Flyway handle schema, just validate on app startup
 
     show-sql: false
     properties:

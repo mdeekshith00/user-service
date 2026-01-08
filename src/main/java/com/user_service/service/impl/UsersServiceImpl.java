@@ -118,7 +118,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		    }).collect(Collectors.toSet());
 				
 
-		 Users user = Users.builder()
+		 Users savedUser = Users.builder()
 				.fullName(userVo.getFullname())
 				.username(userVo.getUsername())
 				.password(encoder.encode(userVo.getPassword()))
@@ -134,8 +134,11 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 				.bio(userVo.getBio())
 				.roles(roles)
 				.build();
+		
 
-		user = userRepositary.save(user);
+		 Users user = userRepositary.save(savedUser);
+		 
+		 System.out.println(savedUser.getUserId());
 		log.info("user sucessfully registered in Db {}" , user.getUserId());
 		
 		final Integer userId = user.getUserId();
@@ -217,11 +220,16 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 			throw new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
 					ErrorConstants.INVALID_DATA);
 		}
-		boolean exist  = user.getRoles().stream().anyMatch(role -> role.getRole() == RoleType.DONOR.toString());
-		if(exist)
-			user.setWantToDonate(Boolean.TRUE);
-		else
-			user.setWantToDonate(Boolean.FALSE);
+	    // 2️ Validate password
+	    if (!encoder.matches(loginUservo.getPassword(), user.getPassword())) {
+	        throw new BloodBankBusinessException(ErrorConstants.INVALID_CREDENTIALS,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA);
+	    }
+		
+	    // 3️ Role-based donate flag
+	    boolean isDonor = user.getRoles()
+	            .stream()
+	            .anyMatch(role -> RoleType.DONOR.toString().equals(role.getRole()));
+	    user.setWantToDonate(isDonor);
 		
 		user.setIsActive(Boolean.TRUE);
 		user.setLastLogin(Timestamp.from(Instant.now()));
@@ -238,18 +246,19 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		
 		Authentication authentication  = 
 				authManager.authenticate(new UsernamePasswordAuthenticationToken(loginUservo.getUsername(), loginUservo.getPassword()));
-		RefreshToken token =  createrefreshToken(user);
+		
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
+	    RefreshToken token =  createrefreshToken(user);
           String jwt = null;
           
           Map<String, Object> claims = new HashMap<>();
           claims.put("userId", user.getUserId());
           claims.put("roles", user.getRoles().stream().map(Role::getRole).toList());
           claims.put("phone", user.getPhoneNumber());
+          claims.put("sub", user.getUsername());
 
 		  if(authentication.isAuthenticated())
               jwt =   jwtServcie.generateTokenFromClaims(claims);
-		  
            return  JWTResponse.builder()
                                   .accesToken(jwt)
                                   .token(token.getToken())
@@ -260,7 +269,6 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	@Transactional(readOnly = true)
 	public UserDto getUsersById(Integer userId) {
 		// TODO Auto-generated method stub
-//		CommonUtils.verifyUserId(String.valueOf(userId));
 		log.debug("user id verified {}:" + userId);
 	  Users user = userRepositary.findByUserIdAndIsActiveAndIsPhoneNumberVerified(userId , true , true)  
 			  .orElseThrow(() ->  new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND ,HttpStatus.BAD_REQUEST,
@@ -446,6 +454,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	    claims.put("userId", user.getUserId());
 	    claims.put("roles", user.getRoles().stream().map(Role::getRole).toList());
 	    claims.put("phone", user.getPhoneNumber());
+	    claims.put("sub", user.getUsername());
  
 	    String newAccessToken = jwtServcie.generateTokenFromClaims(claims);
 
@@ -515,23 +524,18 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 	}
 
 	@Override
+	@Transactional
 	public RefreshToken createrefreshToken(Users user) {
-		// TODO Auto-generated method stub
-	    RefreshToken existingToken = refreshTokenRepositary.findByUser(user).get();
 
-	    if (existingToken != null) {
-	        existingToken.setToken(UUID.randomUUID().toString());
-	        existingToken.setExpiryDate(Instant.now().plusSeconds(3600));
-	        return refreshTokenRepositary.save(existingToken);
-	    }
+	    RefreshToken refreshToken = refreshTokenRepositary.findByUser(user)
+	            .orElse(new RefreshToken());
 
-	    RefreshToken refreshToken = RefreshToken.builder()
-	            .user(user)
-	            .token(UUID.randomUUID().toString())
-	            .expiryDate(Instant.now().plusSeconds(3600))
-	            .build();
+	    refreshToken.setUser(user);
+	    refreshToken.setToken(UUID.randomUUID().toString());
+	    refreshToken.setExpiryDate(Instant.now().plus(30, ChronoUnit.DAYS));
 
 	    return refreshTokenRepositary.save(refreshToken);
 	}
+
 
 }

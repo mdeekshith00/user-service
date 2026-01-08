@@ -51,6 +51,7 @@ public class Users implements UserDetails, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "u_id") 
     private Integer userId;
 
     @Embedded
