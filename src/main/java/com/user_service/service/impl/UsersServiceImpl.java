@@ -222,7 +222,7 @@ public class UsersServiceImpl implements UsersService , RefreshTokenService {
 		}
 	    // 2️ Validate password
 	    if (!encoder.matches(loginUservo.getPassword(), user.getPassword())) {
-	        throw new BloodBankBusinessException(ErrorConstants.INVALID_CREDENTIALS,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA);
+	        throw new BloodBankBusinessException(ErrorConstants.USER_DETAILS_NOT_FOUND,HttpStatus.BAD_REQUEST,ErrorConstants.INVALID_DATA);
 	    }
 		
 	    // 3️ Role-based donate flag

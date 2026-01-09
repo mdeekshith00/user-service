@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/User-Service
+    url: jdbc:postgresql://localhost:5432/BLOODBANK
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
@@ -13,11 +13,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate     # ✅ let Flyway handle schema, just validate on app startup
+      ddl-auto: create     # ✅ let Flyway handle schema, just validate on app startup
 
     show-sql: false
     properties:
       hibernate:
+        default_schema: user_service
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
